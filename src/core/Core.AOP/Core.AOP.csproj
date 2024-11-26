@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+	<ItemGroup>
+		
+		<PackageReference Include="Autofac" Version="8.1.1" />
+		
+		<PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0" />
+		
+		<PackageReference Include="Castle.Core" Version="5.0.0" />
+		<PackageReference Include="FluentValidation" Version="11.5.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="IoC\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Core.CrossCuttingConcerns\Core.CrossCuttingConcerns.csproj" />
+	  <ProjectReference Include="..\Core.Security\Core.Security.csproj" />
+	</ItemGroup>
+</Project>
