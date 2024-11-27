@@ -35,7 +35,7 @@ public interface IAsyncRepository<TEntity, TEntityId> : IQuery<TEntity>
         bool withDeleted = false,
         bool enableTracking = true,
         CancellationToken cancellationToken = default
-    );
+        );
 
     Task<bool> AnyAsync(
     Expression<Func<TEntity, bool>>? predicate = null,
@@ -44,7 +44,7 @@ public interface IAsyncRepository<TEntity, TEntityId> : IQuery<TEntity>
     CancellationToken cancellationToken = default
         );
 
-  
+
 
     Task<TEntity> AddAsync(TEntity entity);
 
