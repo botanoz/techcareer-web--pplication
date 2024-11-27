@@ -12,7 +12,7 @@ public class BaseDbContext : DbContext
     public BaseDbContext(DbContextOptions<BaseDbContext> opt, IConfiguration configuration) : base(opt)
     {
         Configuration = configuration;
-        Database.EnsureCreated();
+        //Database.EnsureCreated();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -27,4 +27,10 @@ public class BaseDbContext : DbContext
     public DbSet<Event> Events { get; set; }
     public DbSet<Instructor> Instructors { get; set; }
     public DbSet<VideoEducation> VideoEducations { get; set; }
+    public DbSet<Dictionary> Dictionaries { get; set; }
+    public DbSet<Company> Companies { get; set; }
+    public DbSet<Job> Jobs { get; set; }
+    public DbSet<TypOfWork> TypOfWorks { get; set; }
+    public DbSet<WorkPlace> WorkPlaces { get; set; }
+    public DbSet<YearsOfExperience> YearsOfExperiences { get; set; }
 }
