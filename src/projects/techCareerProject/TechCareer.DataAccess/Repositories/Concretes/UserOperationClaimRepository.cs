@@ -9,5 +9,6 @@ public sealed class UserOperationClaimRepository : EfRepositoryBase<UserOperatio
 {
     public UserOperationClaimRepository(BaseDbContext context) : base(context)
     {
+
     }
 }
