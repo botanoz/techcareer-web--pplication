@@ -13,10 +13,12 @@ namespace TechCareer.Service.Abstracts
     {
         Task<Category?> GetAsync(
             Expression <Func<Category,bool>> predicate,
+            Category category,
             bool include = false,
             bool withDeleted = false,
             bool enableTracking = true,
             CancellationToken cancellationToken = default
+           
       );
 
         Task<Paginate<Category?>> GetPaginateAsync
@@ -37,5 +39,7 @@ namespace TechCareer.Service.Abstracts
         Task<Category> AddAsync(Category category);
         Task<Category> UpdateAsync(Category category);
         Task<Category> DeleteAsync(Category category, bool permanent = false);
+
+        Task<Category> FindCategoryAsync(Category category);
     }
 }

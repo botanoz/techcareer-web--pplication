@@ -22,4 +22,6 @@ public class Category : Entity<int>
     {
         Name = name;
     }
+
+    public bool IsDeleted { get; set; }
 }

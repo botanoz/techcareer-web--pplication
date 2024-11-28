@@ -4,6 +4,8 @@ namespace Core.Security.Entities;
 
 public class Event : Entity<Guid>
 {
+    public bool IsDeleted;
+
     public string Title { get; set; }
     public string Description { get; set; }
     public string ImageUrl { get; set; }

@@ -14,4 +14,7 @@ public class Paginate<T>
     public IList<T> Items { get; set; }
     public bool HasPrevious => Index > 0;
     public bool HasNext => Index + 1 < Pages;
+
+    public int TotalItems { get; set; }
+    public int TotalPages { get; set; }
 }
