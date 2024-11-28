@@ -2,6 +2,8 @@
 using Autofac.Extras.DynamicProxy;
 using Castle.DynamicProxy;
 using Core.AOP.AspectInterceptors;
+using TechCareer.DataAccess.Repositories.Abstracts;
+using TechCareer.DataAccess.Repositories.Concretes;
 
 namespace TechCareer.Service.DependencyResolvers.Autofac
 {
@@ -18,6 +20,11 @@ namespace TechCareer.Service.DependencyResolvers.Autofac
                 {
                     Selector = new AspectInterceptorSelector()
                 }).SingleInstance();
+
+            builder.RegisterType<CategoryRepository>()
+        .As<ICategoryRepository>()
+        .InstancePerLifetimeScope();
+
         }
     }
 }
