@@ -14,6 +14,7 @@ public static class DataAccessServiceRegistration
 
         services.AddScoped<IUserOperationClaimRepository, UserOperationClaimRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
         
         services.AddDbContext<BaseDbContext>(opt =>
         {
