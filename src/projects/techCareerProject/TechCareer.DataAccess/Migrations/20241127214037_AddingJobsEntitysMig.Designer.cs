@@ -12,8 +12,8 @@ using TechCareer.DataAccess.Contexts;
 namespace TechCareer.DataAccess.Migrations
 {
     [DbContext(typeof(BaseDbContext))]
-    [Migration("20241126220519_SecondCreate")]
-    partial class SecondCreate
+    [Migration("20241127214037_AddingJobsEntitysMig")]
+    partial class AddingJobsEntitysMig
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -55,6 +55,92 @@ namespace TechCareer.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories", (string)null);
+                });
+
+            modelBuilder.Entity("Core.Security.Entities.Company", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletedDate");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("Description");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)")
+                        .HasColumnName("ImageUrl");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Location");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Name");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("UpdatedDate");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Companies", (string)null);
+                });
+
+            modelBuilder.Entity("Core.Security.Entities.Dictionary", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletedDate");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Description");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Title");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("UpdatedDate");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Dictionary", (string)null);
                 });
 
             modelBuilder.Entity("Core.Security.Entities.Event", b =>
@@ -155,6 +241,75 @@ namespace TechCareer.DataAccess.Migrations
                     b.ToTable("Instructors", (string)null);
                 });
 
+            modelBuilder.Entity("Core.Security.Entities.Job", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Content");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Description");
+
+                    b.Property<string>("Skills")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)")
+                        .HasColumnName("Skills");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime")
+                        .HasColumnName("StartDate");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("Title");
+
+                    b.Property<int>("TypeOfWork")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("WorkPlace")
+                        .HasColumnType("int");
+
+                    b.Property<int>("YearsOfExperience")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("TypeOfWork");
+
+                    b.HasIndex("WorkPlace");
+
+                    b.HasIndex("YearsOfExperience");
+
+                    b.ToTable("Jobs", (string)null);
+                });
+
             modelBuilder.Entity("Core.Security.Entities.OperationClaim", b =>
                 {
                     b.Property<int>("Id")
@@ -192,6 +347,38 @@ namespace TechCareer.DataAccess.Migrations
                             CreatedDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Admin"
                         });
+                });
+
+            modelBuilder.Entity("Core.Security.Entities.TypOfWork", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletedDate");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Name");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("UpdatedDate");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TypOfWork", (string)null);
                 });
 
             modelBuilder.Entity("Core.Security.Entities.User", b =>
@@ -258,8 +445,8 @@ namespace TechCareer.DataAccess.Migrations
                             Email = "admin@admin.com",
                             FirstName = "Admin",
                             LastName = "Techcareer",
-                            PasswordHash = new byte[] { 123, 121, 136, 186, 9, 145, 8, 75, 50, 139, 219, 86, 139, 71, 159, 232, 150, 21, 3, 94, 205, 202, 16, 196, 145, 170, 43, 31, 111, 214, 148, 157, 144, 196, 195, 146, 129, 83, 182, 217, 221, 85, 37, 30, 40, 36, 225, 247, 210, 144, 79, 131, 80, 166, 164, 165, 134, 242, 195, 89, 164, 55, 52, 96 },
-                            PasswordSalt = new byte[] { 230, 180, 3, 82, 253, 170, 158, 127, 246, 121, 29, 63, 80, 191, 251, 201, 150, 125, 231, 228, 237, 134, 38, 210, 210, 65, 199, 246, 159, 188, 184, 82, 72, 232, 42, 130, 217, 139, 10, 223, 194, 157, 121, 7, 166, 48, 117, 251, 16, 12, 32, 168, 132, 60, 149, 128, 52, 132, 202, 78, 131, 165, 100, 186, 236, 175, 248, 119, 48, 43, 135, 85, 111, 57, 60, 148, 111, 52, 87, 129, 40, 95, 205, 155, 179, 43, 146, 152, 249, 96, 69, 77, 20, 186, 155, 127, 196, 162, 206, 3, 178, 7, 13, 112, 20, 202, 186, 64, 96, 38, 20, 171, 227, 226, 108, 226, 37, 20, 183, 74, 127, 161, 186, 88, 61, 209, 117, 102 },
+                            PasswordHash = new byte[] { 111, 16, 160, 209, 84, 32, 162, 43, 102, 33, 252, 163, 97, 10, 184, 142, 135, 177, 120, 151, 253, 229, 155, 134, 104, 80, 37, 90, 140, 36, 183, 44, 87, 75, 175, 93, 55, 48, 59, 35, 249, 191, 65, 77, 186, 210, 243, 225, 15, 249, 212, 38, 48, 157, 30, 111, 247, 203, 144, 11, 158, 138, 114, 246 },
+                            PasswordSalt = new byte[] { 135, 148, 162, 14, 243, 163, 147, 140, 152, 136, 116, 88, 0, 69, 165, 208, 58, 31, 251, 102, 239, 61, 71, 8, 1, 220, 184, 65, 240, 8, 197, 123, 113, 218, 192, 84, 214, 39, 81, 250, 158, 176, 143, 95, 46, 145, 98, 122, 163, 184, 216, 252, 96, 15, 240, 148, 99, 2, 176, 34, 136, 48, 91, 170, 91, 210, 44, 117, 88, 238, 233, 112, 130, 165, 22, 182, 216, 219, 93, 126, 25, 49, 196, 85, 65, 196, 27, 183, 241, 60, 71, 201, 128, 138, 24, 205, 141, 16, 108, 57, 221, 206, 152, 22, 16, 20, 30, 43, 220, 10, 5, 119, 231, 246, 93, 42, 172, 47, 158, 73, 177, 156, 178, 214, 159, 234, 68, 192 },
                             Status = true
                         });
                 });
@@ -375,6 +562,70 @@ namespace TechCareer.DataAccess.Migrations
                     b.ToTable("VideoEducations", (string)null);
                 });
 
+            modelBuilder.Entity("Core.Security.Entities.WorkPlace", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletedDate");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Name");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("UpdatedDate");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WorkPlace", (string)null);
+                });
+
+            modelBuilder.Entity("Core.Security.Entities.YearsOfExperience", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletedDate");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Name");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("UpdatedDate");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("YearsOfExperience", (string)null);
+                });
+
             modelBuilder.Entity("Core.Security.Entities.Event", b =>
                 {
                     b.HasOne("Core.Security.Entities.Category", "Category")
@@ -383,6 +634,41 @@ namespace TechCareer.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Core.Security.Entities.Job", b =>
+                {
+                    b.HasOne("Core.Security.Entities.Company", "Company")
+                        .WithMany("Jobs")
+                        .HasForeignKey("CompanyId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Jobs_Companies");
+
+                    b.HasOne("Core.Security.Entities.TypOfWork", "TypeOfWorkNavigation")
+                        .WithMany("Jobs")
+                        .HasForeignKey("TypeOfWork")
+                        .IsRequired()
+                        .HasConstraintName("FK_Jobs_TypOfWork");
+
+                    b.HasOne("Core.Security.Entities.WorkPlace", "WorkPlaceNavigation")
+                        .WithMany("Jobs")
+                        .HasForeignKey("WorkPlace")
+                        .IsRequired()
+                        .HasConstraintName("FK_Jobs_WorkPlace");
+
+                    b.HasOne("Core.Security.Entities.YearsOfExperience", "YearsOfExperienceNavigation")
+                        .WithMany("Jobs")
+                        .HasForeignKey("YearsOfExperience")
+                        .IsRequired()
+                        .HasConstraintName("FK_Jobs_YearsOfExperience");
+
+                    b.Navigation("Company");
+
+                    b.Navigation("TypeOfWorkNavigation");
+
+                    b.Navigation("WorkPlaceNavigation");
+
+                    b.Navigation("YearsOfExperienceNavigation");
                 });
 
             modelBuilder.Entity("Core.Security.Entities.UserOperationClaim", b =>
@@ -419,6 +705,11 @@ namespace TechCareer.DataAccess.Migrations
                     b.Navigation("Events");
                 });
 
+            modelBuilder.Entity("Core.Security.Entities.Company", b =>
+                {
+                    b.Navigation("Jobs");
+                });
+
             modelBuilder.Entity("Core.Security.Entities.Instructor", b =>
                 {
                     b.Navigation("VideoEducations");
@@ -429,9 +720,24 @@ namespace TechCareer.DataAccess.Migrations
                     b.Navigation("UserOperationClaims");
                 });
 
+            modelBuilder.Entity("Core.Security.Entities.TypOfWork", b =>
+                {
+                    b.Navigation("Jobs");
+                });
+
             modelBuilder.Entity("Core.Security.Entities.User", b =>
                 {
                     b.Navigation("UserOperationClaims");
+                });
+
+            modelBuilder.Entity("Core.Security.Entities.WorkPlace", b =>
+                {
+                    b.Navigation("Jobs");
+                });
+
+            modelBuilder.Entity("Core.Security.Entities.YearsOfExperience", b =>
+                {
+                    b.Navigation("Jobs");
                 });
 #pragma warning restore 612, 618
         }
