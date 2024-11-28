@@ -14,6 +14,7 @@ public static class DataAccessServiceRegistration
 
         services.AddScoped<IUserOperationClaimRepository, UserOperationClaimRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+
         //Case1
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
@@ -27,7 +28,9 @@ public static class DataAccessServiceRegistration
         services.AddScoped<ITypOfWorkRepository, TypOfWorkRepository>();
         services.AddScoped<IWorkPlaceRepository, WorkPlaceRepository>();
         services.AddScoped<IYearsOfExperienceRepository, YearsOfExperienceRepository>();
-        
+
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+
         services.AddDbContext<BaseDbContext>(opt =>
         {
             opt.UseSqlServer(configuration.GetConnectionString("SqlConnection"));
