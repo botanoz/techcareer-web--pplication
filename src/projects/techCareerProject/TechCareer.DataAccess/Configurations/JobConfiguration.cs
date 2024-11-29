@@ -1,4 +1,5 @@
 ﻿using Core.Security.Entities;
+using Core.Security.SeedData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -53,5 +54,6 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
             .HasForeignKey(j => j.YearsOfExperience)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("FK_Jobs_YearsOfExperience");
+        builder.HasData(JobSeedData.GetSeedData());
     }
 }

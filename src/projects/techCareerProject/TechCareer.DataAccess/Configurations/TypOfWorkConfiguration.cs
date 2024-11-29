@@ -1,4 +1,5 @@
 ﻿using Core.Security.Entities;
+using Core.Security.SeedData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -25,5 +26,6 @@ public class TypOfWorkConfiguration : IEntityTypeConfiguration<TypOfWork>
         builder.HasMany(t => t.Jobs)
             .WithOne(j => j.TypeOfWorkNavigation)
             .HasForeignKey(j => j.TypeOfWork);
+        builder.HasData(TypOfWorkSeedData.GetSeedData());
     }
 }

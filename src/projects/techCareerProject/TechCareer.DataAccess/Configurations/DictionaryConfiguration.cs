@@ -1,4 +1,5 @@
 ﻿using Core.Security.Entities;
+using Core.Security.SeedData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -24,5 +25,6 @@ public class DictionaryConfiguration : IEntityTypeConfiguration<Dictionary>
         builder.Property(d => d.DeletedDate).HasColumnName("DeletedDate");
 
         builder.HasQueryFilter(d => !d.DeletedDate.HasValue);
+        builder.HasData(DictionarySeedData.GetSeedData());
     }
 }

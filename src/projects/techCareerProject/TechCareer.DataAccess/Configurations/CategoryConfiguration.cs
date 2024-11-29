@@ -1,4 +1,5 @@
 ﻿using Core.Security.Entities;
+using Core.Security.SeedData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -23,5 +24,7 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.HasQueryFilter(c => !c.DeletedDate.HasValue);
 
         builder.HasMany(c => c.Events).WithOne(e => e.Category).HasForeignKey(e => e.CategoryId);
+
+        builder.HasData(CategorySeedData.GetSeedData());
     }
 }

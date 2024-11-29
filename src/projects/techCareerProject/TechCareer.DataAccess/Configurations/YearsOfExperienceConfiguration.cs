@@ -1,4 +1,5 @@
 ﻿using Core.Security.Entities;
+using Core.Security.SeedData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -25,5 +26,6 @@ public class YearsOfExperienceConfiguration : IEntityTypeConfiguration<YearsOfEx
         builder.HasMany(y => y.Jobs)
             .WithOne(j => j.YearsOfExperienceNavigation)
             .HasForeignKey(j => j.YearsOfExperience);
+        builder.HasData(YearsOfExperienceSeedData.GetSeedData());
     }
 }

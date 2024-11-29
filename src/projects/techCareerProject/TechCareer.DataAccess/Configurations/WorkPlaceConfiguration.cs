@@ -1,4 +1,5 @@
 ﻿using Core.Security.Entities;
+using Core.Security.SeedData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -25,5 +26,6 @@ public class WorkPlaceConfiguration : IEntityTypeConfiguration<WorkPlace>
         builder.HasMany(w => w.Jobs)
             .WithOne(j => j.WorkPlaceNavigation)
             .HasForeignKey(j => j.WorkPlace);
+        builder.HasData(WorkPlaceSeedData.GetSeedData());
     }
 }
