@@ -1,5 +1,6 @@
 ﻿using Core.Persistence.Extensions;
 using Core.Security.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,32 +13,83 @@ namespace TechCareer.Service.Concretes
 {
     public class UserOperationClaimService : IUserOperationClaimService
     {
-        public Task<UserOperationClaim> AddAsync(UserOperationClaim userOperationClaim)
+        private readonly IUserOperationClaimService _userOperationClaimService;
+
+        public async Task<UserOperationClaim> AddAsync(UserOperationClaim userOperationClaim)
         {
-            throw new NotImplementedException();
+            UserOperationClaim addedUserOperationClaim = await _userOperationClaimService.AddAsync(userOperationClaim);
+
+            return addedUserOperationClaim;
         }
 
-        public Task<UserOperationClaim> DeleteAsync(UserOperationClaim userOperationClaim, bool permanent = false)
+        public async Task<UserOperationClaim> DeleteAsync(UserOperationClaim userOperationClaim, bool permanent = false)
         {
-            throw new NotImplementedException();
+            var deletedUserOperationClaim = (await GetListAsync(x => x.Id == userOperationClaim.Id)).FirstOrDefault();
+
+            deletedUserOperationClaim.IsDeleted = true;
+
+            return deletedUserOperationClaim;
         }
 
-        public Task<UserOperationClaim?> GetAsync(Expression<Func<UserOperationClaim, bool>> predicate, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
+        public async Task<UserOperationClaim?> GetAsync(Expression<Func<UserOperationClaim, bool>> predicate, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var userOperationClaim = await _userOperationClaimService.GetAsync(predicate);
+
+            return userOperationClaim;
         }
 
-        public Task<List<UserOperationClaim>> GetListAsync(Expression<Func<UserOperationClaim, bool>>? predicate = null, Func<IQueryable<UserOperationClaim>, IOrderedQueryable<UserOperationClaim>>? orderBy = null, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
+        public async Task<List<UserOperationClaim>> GetListAsync(Expression<Func<UserOperationClaim, bool>>? predicate = null, Func<IQueryable<UserOperationClaim>, IOrderedQueryable<UserOperationClaim>>? orderBy = null, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var userOperationClaims = await _userOperationClaimService.GetListAsync();
+            return userOperationClaims;
         }
 
-        public Task<Paginate<UserOperationClaim>> GetPaginateAsync(Expression<Func<UserOperationClaim, bool>>? predicate = null, Func<IQueryable<UserOperationClaim>, IOrderedQueryable<UserOperationClaim>>? orderBy = null, bool include = false, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
+        public async Task<Paginate<UserOperationClaim>> GetPaginateAsync(Expression<Func<UserOperationClaim, bool>>? predicate = null, Func<IQueryable<UserOperationClaim>, IOrderedQueryable<UserOperationClaim>>? orderBy = null, bool include = false, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            IQueryable<UserOperationClaim> userOperationClaims = (IQueryable<UserOperationClaim>)_userOperationClaimService.GetListAsync();
+
+            if (!withDeleted)
+               userOperationClaims = userOperationClaims.Where(c => !c.IsDeleted);
+            if (predicate != null)          
+               userOperationClaims = userOperationClaims.Where(predicate);
+            if (!enableTracking)
+               userOperationClaims = userOperationClaims.AsNoTracking();
+            
+
+            int totalItems = await userOperationClaims.CountAsync(cancellationToken);
+
+            List<UserOperationClaim> items = await userOperationClaims
+                .Skip(index * size)
+                .Take(size)
+                .ToListAsync(cancellationToken);
+
+            return new Paginate<UserOperationClaim>
+            {
+                Items = items,
+                Index = index,
+                Size = size,
+                TotalItems = totalItems,
+                TotalPages = (int)Math.Ceiling(totalItems / (double)size)
+            };
         }
 
-        public Task<UserOperationClaim> UpdateAsync(UserOperationClaim userOperationClaim)
+        public async Task<UserOperationClaim> UpdateAsync(UserOperationClaim userOperationClaim)
+        {
+            var updatedUserOperationClaim = (await GetListAsync(x => x.Id == userOperationClaim.Id)).FirstOrDefault();
+            if (updatedUserOperationClaim != null)
+            {
+                updatedUserOperationClaim = userOperationClaim;
+
+                return updatedUserOperationClaim;
+            }
+
+            else
+            {
+                return NullReferenceException("Aradığınız kategori bulunamamıştır.");
+            }
+        }
+
+        private UserOperationClaim NullReferenceException(string v)
         {
             throw new NotImplementedException();
         }

@@ -1,5 +1,6 @@
 ﻿using Core.Persistence.Extensions;
 using Core.Security.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,30 +14,98 @@ namespace TechCareer.Service.Concretes
     public class InstructorService : IInstructorService
     {
 
+        private readonly IInstructorService _instructorService;
 
-        public Task<Instructor> AddAsync(Instructor Instructor)
+
+        public async Task<Instructor> AddAsync(Instructor Instructor)
         {
-            throw new NotImplementedException();
+            Instructor addedInstructor = await _instructorService.AddAsync(Instructor);
+
+            return addedInstructor;
         }
 
-        public Task<Instructor> DeleteAsync(Instructor Instructor, bool permanent = false)
+        public async Task<Instructor> DeleteAsync(Instructor Instructor, bool permanent = false)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var deletedInstructor = (await GetListAsync(x => x.Id == Instructor.Id)).FirstOrDefault();
+
+                deletedInstructor.IsDeleted = true;
+
+                return deletedInstructor;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
+                throw new ApplicationException(ex.Message, ex);
+            }
+
         }
 
-        public Task<Instructor?> GetAsync(Expression<Func<Instructor, bool>> predicate, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
+        public async Task<Instructor?> GetAsync(Expression<Func<Instructor, bool>> predicate, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var instructor = await _instructorService.GetAsync(predicate);
+                return instructor;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
+                throw new ApplicationException(ex.Message, ex);
+            }
+
         }
 
-        public Task<List<Instructor>> GetListAsync(Expression<Func<Instructor, bool>>? predicate = null, Func<IQueryable<Instructor>, IOrderedQueryable<Instructor>>? orderBy = null, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
+        public async Task<List<Instructor>> GetListAsync(Expression<Func<Instructor, bool>>? predicate = null, Func<IQueryable<Instructor>, IOrderedQueryable<Instructor>>? orderBy = null, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var instructors = await _instructorService.GetListAsync();
+                return instructors;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
+                throw new ApplicationException(ex.Message, ex);
+            }
+
         }
 
-        public Task<Paginate<Instructor>> GetPaginateAsync(Expression<Func<Instructor, bool>>? predicate = null, Func<IQueryable<Instructor>, IOrderedQueryable<Instructor>>? orderBy = null, bool include = false, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
+        public async Task<Paginate<Instructor>> GetPaginateAsync(Expression<Func<Instructor, bool>>? predicate = null, Func<IQueryable<Instructor>, IOrderedQueryable<Instructor>>? orderBy = null, bool include = false, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            try
+            {
+                IQueryable<Instructor> instructors = (IQueryable<Instructor>)_instructorService.GetListAsync();
+
+                if (!withDeleted)
+                    instructors = instructors.Where(c => !c.IsDeleted);
+                if (predicate != null)
+                    instructors = instructors.Where(predicate);
+                if (!enableTracking)
+                    instructors = instructors.AsNoTracking();
+
+                int totalItems = await instructors.CountAsync(cancellationToken);
+
+                List<Instructor> items = await instructors
+                    .Skip(index * size)
+                    .Take(size)
+                    .ToListAsync(cancellationToken);
+
+                return new Paginate<Instructor>
+                {
+                    Items = items,
+                    Index = index,
+                    Size = size,
+                    TotalItems = totalItems,
+                    TotalPages = (int)Math.Ceiling(totalItems / (double)size)
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
+                throw new ApplicationException(ex.Message, ex);
+            }
         }
 
         public Task<Instructor> UpdateAsync(Instructor Instructor)
