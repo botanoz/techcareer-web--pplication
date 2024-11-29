@@ -1,5 +1,6 @@
 ﻿using Core.Persistence.Extensions;
 using Core.Security.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,29 +13,63 @@ namespace TechCareer.Service.Concretes
 {
     public class OperationClaimService : IOperationClaimService
     {
-        public Task<OperationClaim> AddAsync(OperationClaim OperationClaim)
+        private readonly IOperationClaimService _operationClaimService;
+
+        public async Task<OperationClaim> AddAsync(OperationClaim OperationClaim)
         {
-            throw new NotImplementedException();
+            OperationClaim addedOperationClaim = await _operationClaimService.AddAsync(OperationClaim);
+
+            return addedOperationClaim;
         }
 
-        public Task<OperationClaim> DeleteAsync(OperationClaim OperationClaim, bool permanent = false)
+        public async Task<OperationClaim> DeleteAsync(OperationClaim OperationClaim, bool permanent = false)
         {
-            throw new NotImplementedException();
+            var deletedOperationClaim = (await GetListAsync(x => x.Id == OperationClaim.Id)).FirstOrDefault();
+
+            deletedOperationClaim.IsDeleted = true;
+
+            return deletedOperationClaim;
         }
 
-        public Task<OperationClaim?> GetAsync(Expression<Func<OperationClaim, bool>> predicate, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
+        public async Task<OperationClaim?> GetAsync(Expression<Func<OperationClaim, bool>> predicate, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var operationClaim = await _operationClaimService.GetAsync(predicate);
+
+            return operationClaim;
         }
 
-        public Task<List<OperationClaim>> GetListAsync(Expression<Func<OperationClaim, bool>>? predicate = null, Func<IQueryable<OperationClaim>, IOrderedQueryable<OperationClaim>>? orderBy = null, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
+        public async Task<List<OperationClaim>> GetListAsync(Expression<Func<OperationClaim, bool>>? predicate = null, Func<IQueryable<OperationClaim>, IOrderedQueryable<OperationClaim>>? orderBy = null, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var operationClaims = await _operationClaimService.GetListAsync();
+            return operationClaims;
         }
 
-        public Task<Paginate<OperationClaim>> GetPaginateAsync(Expression<Func<OperationClaim, bool>>? predicate = null, Func<IQueryable<OperationClaim>, IOrderedQueryable<OperationClaim>>? orderBy = null, bool include = false, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
+        public async Task<Paginate<OperationClaim>> GetPaginateAsync(Expression<Func<OperationClaim, bool>>? predicate = null, Func<IQueryable<OperationClaim>, IOrderedQueryable<OperationClaim>>? orderBy = null, bool include = false, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            IQueryable<OperationClaim> operationClaims = (IQueryable<OperationClaim>)_operationClaimService.GetListAsync();
+
+            if (!withDeleted)
+              operationClaims = operationClaims.Where(c => !c.IsDeleted);
+            if (predicate != null)
+               operationClaims = operationClaims.Where(predicate);
+            if (!enableTracking)
+               operationClaims = operationClaims.AsNoTracking();
+            
+            int totalItems = await operationClaims.CountAsync(cancellationToken);
+
+            List<OperationClaim> items = await operationClaims
+                .Skip(index * size)
+                .Take(size)
+                .ToListAsync(cancellationToken);
+
+            return new Paginate<OperationClaim>
+            {
+                Items = items,
+                Index = index,
+                Size = size,
+                TotalItems = totalItems,
+                TotalPages = (int)Math.Ceiling(totalItems / (double)size)
+            };
         }
 
         public Task<OperationClaim> UpdateAsync(OperationClaim OperationClaim)

@@ -4,6 +4,8 @@ namespace Core.Security.Entities;
 
 public class VideoEducation : Entity<int>
 {
+    public bool IsDeleted;
+
     public string Title { get; set; }
     public string Description { get; set; }
     public float TotalHour { get; set; }

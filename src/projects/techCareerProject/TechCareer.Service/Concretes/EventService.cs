@@ -17,84 +17,126 @@ namespace TechCareer.Service.Concretes
     public class EventService : IEventService
     {
         private readonly IEventRepository _eventRepository;
-        //private readonly EventBusinessRules _eventBusinessRules;
 
-        //public EventService(IEventRepository eventRepository, EventBusinessRules eventBusinessRules)
-        //{
-        //    _eventRepository = eventRepository;
-        //    _eventBusinessRules = eventBusinessRules;
-        //}
-
+        public EventService(IEventRepository eventRepository)
+        {
+            _eventRepository = eventRepository;
+       
+        }
 
         public async Task<Event> AddAsync(Event Event)
         {
-            Event addedEvent = await _eventRepository.AddAsync(Event);
+            try
+            {
+                Event addedEvent = await _eventRepository.AddAsync(Event);
+                return addedEvent;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
+                throw new ApplicationException("Etkinlik eklenemedi", ex);
+            }
 
-            return addedEvent;
         }
 
         public async Task<Event> DeleteAsync(Event Event, bool permanent = false)
         {
-            var selectedEvent = (await GetListAsync(x => x.Id == Event.Id)).FirstOrDefault();
+            try
+            {
+                var selectedEvent = (await GetListAsync(x => x.Id == Event.Id)).FirstOrDefault();
+                selectedEvent.IsDeleted = true;
 
-            selectedEvent.IsDeleted = true;
+                return selectedEvent;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
+                throw new ApplicationException("Etkinlik silinemedi", ex);
+            }
 
-            return selectedEvent;
         }
 
-        public async Task<Event?> GetAsync(Expression<Func<Event, bool>> predicate, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
+        public async Task<Event?> GetAsync(
+            Expression<Func<Event, bool>> predicate,
+            bool include = false,
+            bool withDeleted = false,
+            bool enableTracking = true,
+            CancellationToken cancellationToken = default)
         {
-            //var selectedEvent = (await _eventRepository.GetListAsync(x => x.Id == Event.Id)).FirstOrDefault();
+            try
+            {
+                var query = _eventRepository.Query();
 
-            //return selectedEvent;
-            return null;
+                if (!enableTracking)                {
+                    query = query.AsNoTracking();                }
+
+                if (!withDeleted)
+                    query = query.Where(e => !e.IsDeleted);
+                
+                var selectedEvent = await query.FirstOrDefaultAsync(predicate, cancellationToken);
+
+                return selectedEvent;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
+                throw new ApplicationException("Etkinlik getirilemedi", ex);
+            }
+
         }
+
 
         public async Task<List<Event>> GetListAsync(Expression<Func<Event, bool>>? predicate = null, Func<IQueryable<Event>, IOrderedQueryable<Event>>? orderBy = null, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            List<Event> list = await _eventRepository.GetListAsync();
+            try
+            {
+                List<Event> list = await _eventRepository.GetListAsync();
 
-            return list;
+                return list;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
+                throw new ApplicationException("Etkinlikler getirilemedi", ex);
+            }
+
         }
 
         public async Task<Paginate<Event>> GetPaginateAsync(Expression<Func<Event, bool>>? predicate = null, Func<IQueryable<Event>, IOrderedQueryable<Event>>? orderBy = null, bool include = false, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            IQueryable<Event> query = (IQueryable<Event>)_eventRepository.GetListAsync();
-
-
-            if (!withDeleted)
+            try
             {
-                query = query.Where(c => !c.IsDeleted);
+                IQueryable<Event> query = (IQueryable<Event>)_eventRepository.GetListAsync();
+
+                if (!withDeleted)
+                    query = query.Where(c => !c.IsDeleted);
+
+                if (predicate != null)
+                    query = query.Where(predicate);
+
+                if (!enableTracking)
+                    query = query.AsNoTracking();
+
+                int totalItems = await query.CountAsync(cancellationToken);
+                List<Event> items = await query
+                    .Skip(index * size)
+                    .Take(size)
+                    .ToListAsync(cancellationToken);
+
+                return new Paginate<Event>
+                {
+                    Items = items,
+                    Index = index,
+                    Size = size,
+                    TotalItems = totalItems,
+                    TotalPages = (int)Math.Ceiling(totalItems / (double)size)
+                };
             }
-
-
-            if (predicate != null)
+            catch (Exception ex)
             {
-                query = query.Where(predicate);
+                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
+                throw new ApplicationException(ex.Message, ex);
             }
-
-            if (!enableTracking)
-            {
-                query = query.AsNoTracking();
-            }
-
-            int totalItems = await query.CountAsync(cancellationToken);
-
-
-            List<Event?> items = await query
-                .Skip(index * size)
-                .Take(size)
-                .ToListAsync(cancellationToken);
-
-
-            return new Paginate<Event?>
-            {
-                Items = items,
-                Index = index,
-                Size = size,
-                TotalItems = totalItems,
-                TotalPages = (int)Math.Ceiling(totalItems / (double)size)
-            };
         }
 
         public async Task<Event> UpdateAsync(Event Event)
@@ -103,11 +145,9 @@ namespace TechCareer.Service.Concretes
             if (updatedEvent != null)
             {
                 updatedEvent = Event;
-
                 return updatedEvent;
             }
-
-            else
+           else
             {
                 return NullReferenceException("Aradığınız kategori bulunamamıştır.");
             }

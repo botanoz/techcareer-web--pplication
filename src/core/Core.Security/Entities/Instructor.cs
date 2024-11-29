@@ -7,6 +7,8 @@ public class Instructor : Entity<Guid>
     public string Name { get; set; }
     public string About { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual ICollection<VideoEducation> VideoEducations { get; set; } = null!;
 
     public Instructor()

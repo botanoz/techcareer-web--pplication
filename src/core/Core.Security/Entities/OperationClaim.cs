@@ -4,6 +4,8 @@ namespace Core.Security.Entities;
 
 public class OperationClaim : Entity<int>
 {
+    public bool IsDeleted;
+
     public string Name { get; set; }
 
     public virtual ICollection<UserOperationClaim> UserOperationClaims { get; set; } = null!;
