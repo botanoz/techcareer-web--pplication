@@ -4,6 +4,8 @@ namespace Core.Security.Entities;
 
 public class Job : Entity<int>
 {
+    public bool IsDeleted;
+
     public string Title { get; set; }
     public int TypeOfWork { get; set; }
     public int YearsOfExperience { get; set; }
