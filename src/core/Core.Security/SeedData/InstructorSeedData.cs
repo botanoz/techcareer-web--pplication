@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Core.Security.SeedData
 {
-    public class InstructorSeedData
+    public static class InstructorSeedData
     {
         public static List<Instructor> GetSeedData()
         {
