@@ -1,4 +1,5 @@
 ﻿using Core.Security.Entities;
+using Core.Security.SeedData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -26,5 +27,6 @@ public class InstructorConfiguration : IEntityTypeConfiguration<Instructor>
         builder.HasQueryFilter(i => !i.DeletedDate.HasValue);
 
         builder.HasMany(i => i.VideoEducations).WithOne(ve => ve.Instructor).HasForeignKey(ve => ve.InstructorId);
+        builder.HasData(InstructorSeedData.GetSeedData());
     }
 }

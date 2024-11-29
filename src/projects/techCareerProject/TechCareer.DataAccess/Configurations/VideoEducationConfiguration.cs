@@ -1,4 +1,5 @@
 ﻿using Core.Security.Entities;
+using Core.Security.SeedData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -33,5 +34,6 @@ public class VideoEducationConfiguration : IEntityTypeConfiguration<VideoEducati
             .WithMany(i => i.VideoEducations)
             .HasForeignKey(ve => ve.InstructorId)
             .OnDelete(DeleteBehavior.ClientSetNull);
+        builder.HasData(VideoEducationSeedData.GetSeedData());
     }
 }

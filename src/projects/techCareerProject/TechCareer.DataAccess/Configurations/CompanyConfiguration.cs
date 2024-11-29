@@ -1,4 +1,5 @@
 ﻿using Core.Security.Entities;
+using Core.Security.SeedData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -37,5 +38,6 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company>
             .WithOne(j => j.Company)
             .HasForeignKey(j => j.CompanyId)
             .OnDelete(DeleteBehavior.ClientSetNull);
+        builder.HasData(CompanySeedData.GetSeedData());
     }
 }

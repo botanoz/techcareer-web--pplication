@@ -1,4 +1,5 @@
 ﻿using Core.Security.Entities;
+using Core.Security.SeedData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -32,5 +33,6 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
             .WithMany(c => c.Events)
             .HasForeignKey(e => e.CategoryId)
             .OnDelete(DeleteBehavior.ClientSetNull);
+        builder.HasData(EventSeedData.GetSeedData());
     }
 }
