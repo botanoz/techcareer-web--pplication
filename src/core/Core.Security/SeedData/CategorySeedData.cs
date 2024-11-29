@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Core.Security.SeedData
 {
-    public class CategorySeedData
+    public static class CategorySeedData
     {
         public static List<Category> GetSeedData()
         {
@@ -16,7 +16,7 @@ namespace Core.Security.SeedData
              new Category {Id=1,Name = "Bootcamp"  },
              new Category {Id=2,Name = "Hackathon" },
              new Category {Id=3,Name = "Hiring Challenge"},
-             new Category {Id=4,Name = "Tüm Etkinlikler" },
+           
             };
 
 

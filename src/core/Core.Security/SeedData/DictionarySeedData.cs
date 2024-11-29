@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Core.Security.SeedData
 {
-    public class DictionarySeedData
+    public static class DictionarySeedData
     {
         public static List<Dictionary> GetSeedData()
         {
