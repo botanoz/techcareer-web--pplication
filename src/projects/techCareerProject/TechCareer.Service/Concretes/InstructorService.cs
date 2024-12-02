@@ -108,9 +108,16 @@ namespace TechCareer.Service.Concretes
             }
         }
 
-        public Task<Instructor> UpdateAsync(Instructor Instructor)
+        public async Task<Instructor> UpdateAsync(Instructor Instructor)
         {
-            throw new NotImplementedException();
+            //var existingInstructor = await _instructorService.GetAsync(Instructor.Id);
+            //if (existingInstructor == null) throw new KeyNotFoundException("Instructor not found.");
+
+            //_dbContext.Entry(existingInstructor).CurrentValues.SetValues(instructor);
+            //await _dbContext.SaveChangesAsync();
+
+            //return existingInstructor;
+            return null;
         }
     }
 }
