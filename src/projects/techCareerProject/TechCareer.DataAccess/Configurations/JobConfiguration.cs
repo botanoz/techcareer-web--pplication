@@ -1,9 +1,7 @@
 ﻿using Core.Security.Entities;
 using Core.Security.SeedData;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace TechCareer.DataAccess.Configurations;
+using Microsoft.EntityFrameworkCore;
 
 public class JobConfiguration : IEntityTypeConfiguration<Job>
 {
@@ -12,23 +10,30 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
         builder.ToTable("Jobs").HasKey(j => j.Id);
 
         builder.Property(j => j.Id).HasColumnName("Id").IsRequired();
+
         builder.Property(j => j.Title)
             .HasColumnName("Title")
             .HasMaxLength(100)
             .IsRequired();
+
         builder.Property(j => j.Skills)
             .HasColumnName("Skills")
-            .HasMaxLength(250)
+            .HasColumnType("nvarchar(max)") 
             .IsRequired();
+
         builder.Property(j => j.StartDate)
             .HasColumnName("StartDate")
             .HasColumnType("datetime")
             .IsRequired();
+
         builder.Property(j => j.Content)
             .HasColumnName("Content")
+            .HasColumnType("nvarchar(max)") 
             .IsRequired();
+
         builder.Property(j => j.Description)
             .HasColumnName("Description")
+            .HasColumnType("nvarchar(max)") 
             .IsRequired();
 
         builder.HasOne(j => j.Company)
@@ -54,6 +59,7 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
             .HasForeignKey(j => j.YearsOfExperience)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("FK_Jobs_YearsOfExperience");
+
         builder.HasData(JobSeedData.GetSeedData());
     }
 }

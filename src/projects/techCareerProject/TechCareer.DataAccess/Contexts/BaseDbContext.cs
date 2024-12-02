@@ -20,8 +20,8 @@ public class BaseDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 
-    public DbSet<User> Users { get; set; }
     public DbSet<OperationClaim> OperationClaims { get; set; }
+    public DbSet<User> Users { get; set; }
     public DbSet<UserOperationClaim> UserOperationClaims { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<Event> Events { get; set; }
@@ -29,8 +29,8 @@ public class BaseDbContext : DbContext
     public DbSet<VideoEducation> VideoEducations { get; set; }
     public DbSet<Dictionary> Dictionaries { get; set; }
     public DbSet<Company> Companies { get; set; }
-    public DbSet<Job> Jobs { get; set; }
     public DbSet<TypOfWork> TypOfWorks { get; set; }
     public DbSet<WorkPlace> WorkPlaces { get; set; }
     public DbSet<YearsOfExperience> YearsOfExperiences { get; set; }
+    public DbSet<Job> Jobs { get; set; }
 }

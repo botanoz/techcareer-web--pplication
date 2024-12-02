@@ -12,8 +12,6 @@ namespace Core.Security.SeedData
         public  static  List<Event> GetSeedData()
         {
 
-            var events = GetSeedData();
-
             return new List<Event>()
             {
              new Event {Id = Guid.NewGuid(),Title = "Sürdürülebilir Enerji Fikir Maratonu", Description = "Fikirler Enerjiye, Enerji Geleceğe Dönüşsün! 🌍 \r\n\r\nGüney Marmara Kalkınma Ajansı, Bandırma Onyedi Eylül Üniversitesi iş birliği, Enerjisa Üretim ödül sponsorluğuyla düzenlenen Sürdürülebilir Enerji Fikir Maratonu, gençlerin enerji verimliliği ve yenilenebilir enerji alanlarında yenilikçi çözümler geliştirmesini amaçlayan yeni nesil bir Ideathon!\r\n\r\nAlanında uzman eğitmenlerin yer aldığı Bootcampler ile eğitim al," +

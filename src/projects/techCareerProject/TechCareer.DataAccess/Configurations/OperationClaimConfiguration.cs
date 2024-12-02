@@ -1,5 +1,6 @@
 ﻿using Core.Security.Constants;
 using Core.Security.Entities;
+using Core.Security.SeedData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -21,18 +22,8 @@ public class OperationClaimConfiguration : IEntityTypeConfiguration<OperationCla
 
         builder.HasMany(oc => oc.UserOperationClaims);
 
-        builder.HasData(getSeeds());
+        builder.HasData(OperationClaimSeedData.GetSeedData());
     }
 
-    private HashSet<OperationClaim> getSeeds()
-    {
-        int id = 0;
-        HashSet<OperationClaim> seeds =
-            new()
-            {
-                new OperationClaim { Id = ++id, Name = GeneralOperationClaims.Admin }
-            };
 
-        return seeds;
-    }
 }

@@ -16,13 +16,13 @@ public class UserOperationClaim : Entity<int>
     public UserOperationClaim(int userId, int operationClaimId)
     {
         UserId = userId;
-        UserOperationClaimId = operationClaimId;
+        OperationClaimId = operationClaimId;
     }
 
     public UserOperationClaim(int id, int userId, int operationClaimId)
         : base(id)
     {
         UserId = userId;
-        UserOperationClaimId = operationClaimId;
+        OperationClaimId = operationClaimId;
     }
 }

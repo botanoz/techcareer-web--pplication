@@ -1,4 +1,5 @@
 ﻿using Core.Security.Entities;
+using Core.Security.SeedData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -25,18 +26,8 @@ public class UserOperationClaimConfiguration : IEntityTypeConfiguration<UserOper
         builder.Navigation(x => x.OperationClaim).AutoInclude();
         builder.Navigation(x => x.User).AutoInclude();
         
-        builder.HasData(getSeeds());
+        builder.HasData(UserOperationClaimSeedData.GetSeedData());
         
         
-    }
-
-    private IEnumerable<UserOperationClaim> getSeeds()
-    {
-        List<UserOperationClaim> userOperationClaims = new();
-
-        UserOperationClaim adminUserOperationClaim = new(id: 1, userId: 1, operationClaimId: 1);
-        userOperationClaims.Add(adminUserOperationClaim);
-
-        return userOperationClaims;
     }
 }

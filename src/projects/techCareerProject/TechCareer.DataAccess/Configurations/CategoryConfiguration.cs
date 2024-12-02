@@ -14,7 +14,7 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.Property(c => c.Id).HasColumnName("Id").IsRequired();
         builder.Property(c => c.Name)
             .HasColumnName("Name")
-            .HasMaxLength(10)
+            .HasMaxLength(20)
             .IsRequired();
 
         builder.Property(c => c.CreatedDate).HasColumnName("CreatedDate").IsRequired();
