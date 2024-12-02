@@ -1,61 +1,104 @@
-﻿using Core.Security.Entities;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Linq.Expressions;
 using TechCareer.Service.Abstracts;
 using TechCareer.Service.Concretes;
+using Core.Security.Entities;
 
 namespace TechCareer.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoryController(ICategoryService _categoryService) : ControllerBase
+    public class CategoryController : ControllerBase
     {
+        private readonly ICategoryService _CategoryService;
 
-        [HttpGet("getAllCategories")]
-        public async Task<IActionResult> GetAllCategories()
+        public CategoryController(ICategoryService CategoryService)
         {
-            var categories = await _categoryService.GetListAsync();
-            return Ok(categories);
+            _CategoryService = CategoryService;
         }
 
-
-        [HttpPost("addCategory")]
-        public async Task<IActionResult> AddCategory()
+      
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] bool includeDeleted = false)
         {
-            List<Event> testEvent = new List<Event>();
-            Event evnt = new Event()
+            var Categorys = await _CategoryService.GetListAsync(
+                withDeleted: includeDeleted);
+            return Ok(Categorys);
+        }
+
+    
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            //var Category = await _CategoryService.GetAsync(x => x.Id == id);
+            //if (Category == null)
+            //    return NotFound(new { Message = "Category not found." });
+
+            //return Ok(Category);
+
+            return null;
+        }
+
+    
+        [HttpPost]
+        public async Task<IActionResult> Add([FromBody] Category Category)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var addedCategory = await _CategoryService.AddAsync(Category);
+            return CreatedAtAction(nameof(GetById), new { id = addedCategory.Id }, addedCategory);
+        }
+
+  
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] Category Category)
+        {
+            if (id != Category.Id)
+                return BadRequest(new { Message = "Category ID mismatch." });
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
             {
-                ApplicationDeadline = DateTime.Now,
-                Category = null,
-                CategoryId = 1,
-                CreatedDate = DateTime.Now,
-                DeletedDate = DateTime.Now,
-                Description = "Description",
-                EndDate = DateTime.Now,
-                Id = Guid.NewGuid(),
-                ImageUrl = "image string",
-                ParticipationText = "participation text",
-                StartDate = DateTime.Now,
-                Title = "Title",
-                UpdatedDate = DateTime.Now
-            };
-
-            testEvent.Add(evnt);
-
-            Category testCategory = new Category
+                var updatedCategory = await _CategoryService.UpdateAsync(Category);
+                return Ok(updatedCategory);
+            }
+            catch (KeyNotFoundException)
             {
-                CreatedDate = DateTime.Now,
-                DeletedDate = DateTime.Now,
-                Events = testEvent,
-                Name = "Test",
-                UpdatedDate = DateTime.Now
-            };
+                return NotFound(new { Message = "Category not found." });
+            }
+        }
 
-            var result = await _categoryService.AddAsync(testCategory);
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id, [FromQuery] bool permanent = false)
+        {
+            try
+            {
+                var Category = new Category { Id = id };
+                var deletedCategory = await _CategoryService.DeleteAsync(Category, permanent);
+                return Ok(deletedCategory);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { Message = "Category not found." });
+            }
+        }
+
+      
+        [HttpGet("paginate")]
+        public async Task<IActionResult> GetPaginated(
+            [FromQuery] int pageIndex = 0,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] bool includeDeleted = false)
+        {
+            var result = await _CategoryService.GetPaginateAsync(
+                index: pageIndex,
+                size: pageSize,
+                withDeleted: includeDeleted);
 
             return Ok(result);
-
         }
     }
-
 }
