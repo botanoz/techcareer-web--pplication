@@ -13,19 +13,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.CrossCuttingConcerns",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Persistence", "src\core\Core.Persistence\Core.Persistence.csproj", "{B2BDB4D5-29CD-4A13-B9FB-9E4A9CDF9CA6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Security", "src\core\Core.Security\Core.Security.csproj", "{E873F7F8-34F1-4C69-9362-4581E17732A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Security", "src\core\Core.Security\Core.Security.csproj", "{E873F7F8-34F1-4C69-9362-4581E17732A9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "techCareerProject", "techCareerProject", "{16FA7908-8262-4BFE-ABB4-CCC53CF30DC2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechCareer.Models", "src\projects\techCareerProject\TechCareer.Models\TechCareer.Models.csproj", "{2CE91D6B-312D-4F32-9B66-568216D141D1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TechCareer.Models", "src\projects\techCareerProject\TechCareer.Models\TechCareer.Models.csproj", "{2CE91D6B-312D-4F32-9B66-568216D141D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechCareer.DataAccess", "src\projects\techCareerProject\TechCareer.DataAccess\TechCareer.DataAccess.csproj", "{8A633D56-6DC1-4917-B146-D5DB8985FFFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TechCareer.DataAccess", "src\projects\techCareerProject\TechCareer.DataAccess\TechCareer.DataAccess.csproj", "{8A633D56-6DC1-4917-B146-D5DB8985FFFC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechCareer.Service", "src\projects\techCareerProject\TechCareer.Service\TechCareer.Service.csproj", "{34A326C7-CAF5-459C-BFA7-4126324FEAF9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TechCareer.Service", "src\projects\techCareerProject\TechCareer.Service\TechCareer.Service.csproj", "{34A326C7-CAF5-459C-BFA7-4126324FEAF9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechCareer.API", "src\projects\techCareerProject\TechCareer.API\TechCareer.API.csproj", "{766E0AC8-CADE-4BB0-8272-92CEE24B36D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TechCareer.API", "src\projects\techCareerProject\TechCareer.API\TechCareer.API.csproj", "{766E0AC8-CADE-4BB0-8272-92CEE24B36D7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.AOP", "src\core\Core.AOP\Core.AOP.csproj", "{A71F08E6-915D-40B8-8849-20B55B4C5DB0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.AOP", "src\core\Core.AOP\Core.AOP.csproj", "{A71F08E6-915D-40B8-8849-20B55B4C5DB0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TechCareer.Service.Tests", "..\TechCareer.Service.UnitTests\TechCareer.Service.Tests.csproj", "{63F6D99D-658F-41DF-A2B7-4C798AB22424}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,6 +67,10 @@ Global
 		{A71F08E6-915D-40B8-8849-20B55B4C5DB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A71F08E6-915D-40B8-8849-20B55B4C5DB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A71F08E6-915D-40B8-8849-20B55B4C5DB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63F6D99D-658F-41DF-A2B7-4C798AB22424}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63F6D99D-658F-41DF-A2B7-4C798AB22424}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63F6D99D-658F-41DF-A2B7-4C798AB22424}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63F6D99D-658F-41DF-A2B7-4C798AB22424}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
