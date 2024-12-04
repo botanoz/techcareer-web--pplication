@@ -14,16 +14,16 @@ namespace TechCareer.Service.Concretes
 {
     public class VideoEducationService : IVideoEducationService
     {
-        private readonly IVideoEducationService _videoEducationService;
+        private readonly IVideoEducationRepository _videoEducationRepository;
 
-        public VideoEducationService(IVideoEducationService videoEducationService)
+        public VideoEducationService(IVideoEducationRepository videoEducationRepository)
         {
-            _videoEducationService = videoEducationService;
+            _videoEducationRepository = videoEducationRepository;
         }
 
         public async Task<VideoEducation> AddAsync(VideoEducation videoEducation)
         {
-            VideoEducation addedVideoEducation = await _videoEducationService.AddAsync(videoEducation);
+            VideoEducation addedVideoEducation = await _videoEducationRepository.AddAsync(videoEducation);
 
             return addedVideoEducation;
         }
@@ -39,20 +39,20 @@ namespace TechCareer.Service.Concretes
 
         public async Task<VideoEducation?> GetAsync(Expression<Func<VideoEducation, bool>> predicate, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            var userOperationClaim = await _videoEducationService.GetAsync(predicate);
+            var userOperationClaim = await _videoEducationRepository.GetAsync(predicate);
 
             return userOperationClaim;
         }
 
         public async Task<List<VideoEducation>> GetListAsync(Expression<Func<VideoEducation, bool>>? predicate = null, Func<IQueryable<VideoEducation>, IOrderedQueryable<VideoEducation>>? orderBy = null, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            var videoEducations = await _videoEducationService.GetListAsync();
+            var videoEducations = await _videoEducationRepository.GetListAsync();
             return videoEducations;
         }
 
         public async Task<Paginate<VideoEducation>> GetPaginateAsync(Expression<Func<VideoEducation, bool>>? predicate = null, Func<IQueryable<VideoEducation>, IOrderedQueryable<VideoEducation>>? orderBy = null, bool include = false, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            IQueryable<VideoEducation> videoEducations = (IQueryable<VideoEducation>)_videoEducationService.GetListAsync();
+            IQueryable<VideoEducation> videoEducations = (IQueryable<VideoEducation>)_videoEducationRepository.GetListAsync();
 
 
             if (!withDeleted)

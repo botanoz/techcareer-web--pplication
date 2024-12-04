@@ -7,6 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using TechCareer.DataAccess.Repositories.Abstracts;
 using TechCareer.Service.Abstracts;
 
 namespace TechCareer.Service.Concretes
@@ -14,16 +15,16 @@ namespace TechCareer.Service.Concretes
     public class InstructorService : IInstructorService
     {
 
-        private readonly IInstructorService _instructorService;
+        private readonly IInstructorRepository _instructorRepository;
 
-        public InstructorService(IInstructorService instructorService)
+        public InstructorService(IInstructorRepository instructorRepository)
         {
-            _instructorService = instructorService;
+            _instructorRepository = instructorRepository;
         }
 
         public async Task<Instructor> AddAsync(Instructor Instructor)
         {
-            Instructor addedInstructor = await _instructorService.AddAsync(Instructor);
+            Instructor addedInstructor = await _instructorRepository.AddAsync(Instructor);
 
             return addedInstructor;
         }
@@ -50,7 +51,7 @@ namespace TechCareer.Service.Concretes
         {
             try
             {
-                var instructor = await _instructorService.GetAsync(predicate);
+                var instructor = await _instructorRepository.GetAsync(predicate);
                 return instructor;
             }
             catch (Exception ex)
@@ -65,7 +66,7 @@ namespace TechCareer.Service.Concretes
         {
             try
             {
-                var instructors = await _instructorService.GetListAsync();
+                var instructors = await _instructorRepository.GetListAsync();
                 return instructors;
             }
             catch (Exception ex)
@@ -80,7 +81,7 @@ namespace TechCareer.Service.Concretes
         {
             try
             {
-                IQueryable<Instructor> instructors = (IQueryable<Instructor>)_instructorService.GetListAsync();
+                IQueryable<Instructor> instructors = (IQueryable<Instructor>)_instructorRepository.GetListAsync();
 
                 if (!withDeleted)
                     instructors = instructors.Where(c => !c.IsDeleted);
@@ -114,7 +115,7 @@ namespace TechCareer.Service.Concretes
 
         public async Task<Instructor> UpdateAsync(Instructor Instructor)
         {
-            //var existingInstructor = await _instructorService.GetAsync(Instructor.Id);
+            //var existingInstructor = await _instructorRepository.GetAsync(Instructor.Id);
             //if (existingInstructor == null) throw new KeyNotFoundException("Instructor not found.");
 
             //_dbContext.Entry(existingInstructor).CurrentValues.SetValues(instructor);
