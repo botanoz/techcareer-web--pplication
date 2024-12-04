@@ -11,7 +11,7 @@ using TechCareer.DataAccess;
 using TechCareer.Service;
 using TechCareer.Service.DependencyResolvers.Autofac;
 using System.Text.Json.Serialization;
-
+//botan özalp
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
