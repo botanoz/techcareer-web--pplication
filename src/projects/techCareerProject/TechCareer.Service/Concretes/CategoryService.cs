@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TechCareer.DataAccess.Repositories.Abstracts;
+using TechCareer.Models.Dtos.Category;
 using TechCareer.Service.Abstracts;
 using TechCareer.Service.Rules;
 
@@ -42,10 +43,12 @@ namespace TechCareer.Service.Concretes
             }
         }
 
-        public async Task<Category> AddAsync(Category category)
+        public async Task<Category> AddAsync(CategoryAddRequestDto categoryAddRequestDto)
         {
             try
             {
+                Category category = new Category(categoryAddRequestDto.Name);
+
                 Category addedCategory = await _categoryRepository.AddAsync(category);
 
                 return addedCategory;
@@ -134,14 +137,15 @@ namespace TechCareer.Service.Concretes
             }
         }
 
-        public async Task<Category> UpdateAsync(Category category)
+        public async Task<Category> UpdateAsync(CategoryUpdateRequestDto categoryUpdateRequestDto)
         {
             try
             {
-                var updatedCategory = (await GetListAsync(x => x.Id == category.Id)).FirstOrDefault();
+                var updatedCategory = await _categoryRepository.GetAsync(x => x.Id == categoryUpdateRequestDto.Id);
                 if (updatedCategory != null)
                 {
-                    updatedCategory = category;
+                    updatedCategory.Name = categoryUpdateRequestDto.Name;
+                    _categoryRepository.UpdateAsync(updatedCategory);
                     return updatedCategory;
                 }
                 else
