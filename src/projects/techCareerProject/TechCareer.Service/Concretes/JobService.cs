@@ -17,6 +17,11 @@ namespace TechCareer.Service.Concretes
     {
         private readonly IJobRepository _jobRepository;
 
+        public JobService(IJobRepository jobRepository)
+        {
+            _jobRepository = jobRepository;
+        }
+
         public async Task<Job> AddAsync(Job job)
         {
             Job addedJob = await _jobRepository.AddAsync(job);

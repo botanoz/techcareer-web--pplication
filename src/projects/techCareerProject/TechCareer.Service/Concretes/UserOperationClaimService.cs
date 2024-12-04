@@ -15,6 +15,11 @@ namespace TechCareer.Service.Concretes
     {
         private readonly IUserOperationClaimService _userOperationClaimService;
 
+        public UserOperationClaimService(IUserOperationClaimService userOperationClaimService)
+        {
+            _userOperationClaimService = userOperationClaimService;
+        }
+
         public async Task<UserOperationClaim> AddAsync(UserOperationClaim userOperationClaim)
         {
             UserOperationClaim addedUserOperationClaim = await _userOperationClaimService.AddAsync(userOperationClaim);
