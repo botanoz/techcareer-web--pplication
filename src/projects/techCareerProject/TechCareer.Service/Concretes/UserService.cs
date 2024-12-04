@@ -7,8 +7,17 @@ using TechCareer.Service.Abstracts;
 using TechCareer.Service.Rules;
 
 namespace TechCareer.Service.Concretes;
-public sealed class UserService(IUserRepository _userRepository, UserBusinessRules _userBusinessRules) : IUserService
+public sealed class UserService : IUserService
 {
+    private readonly IUserRepository _userRepository;
+    private readonly UserBusinessRules _userBusinessRules;
+
+    public UserService(UserBusinessRules userBusinessRules, IUserRepository userRepository)
+    {
+        _userBusinessRules = userBusinessRules;
+        _userRepository = userRepository;
+    }
+
     public async Task<User?> GetAsync(Expression<Func<User, bool>> predicate, bool include = false, bool withDeleted = false, bool enableTracking = true,
         CancellationToken cancellationToken = default)
     {

@@ -16,6 +16,10 @@ namespace TechCareer.Service.Concretes
 
         private readonly IInstructorService _instructorService;
 
+        public InstructorService(IInstructorService instructorService)
+        {
+            _instructorService = instructorService;
+        }
 
         public async Task<Instructor> AddAsync(Instructor Instructor)
         {

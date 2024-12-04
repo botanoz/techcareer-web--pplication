@@ -12,13 +12,23 @@ using TechCareer.Service.Validations.Users;
 
 namespace TechCareer.Service.Concretes;
 
-public sealed class AuthService(
-    UserBusinessRules _rules, 
-    IUserWithTokenService _tokenService,
-    IUserService _userService,
-    IMapper _mapper
-    ) : IAuthService
+public sealed class AuthService : IAuthService
 {
+
+
+    private readonly UserBusinessRules _rules;
+    private readonly IUserWithTokenService _tokenService;
+    private readonly IUserService _userService;
+    private readonly IMapper _mapper;
+
+    public AuthService(UserBusinessRules rules, IUserWithTokenService tokenService, IUserService userService, IMapper mapper)
+    {
+        _rules = rules;
+        _mapper = mapper;
+        _tokenService = tokenService;
+        _userService = userService;
+    }
+    
 
     [ValidationAspect(typeof(LoginValidator))]
     [LoggerAspect]
