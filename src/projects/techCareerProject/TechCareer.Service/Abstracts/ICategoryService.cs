@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using TechCareer.Models.Dtos.Category;
 
 namespace TechCareer.Service.Abstracts
 {
@@ -36,8 +37,8 @@ namespace TechCareer.Service.Abstracts
             bool enableTracking = true,
             CancellationToken cancellationToken = default);
 
-        Task<Category> AddAsync(Category category);
-        Task<Category> UpdateAsync(Category category);
+        Task<Category> AddAsync(CategoryAddRequestDto categoryAddRequestDto);
+        Task<Category> UpdateAsync(CategoryUpdateRequestDto categoryUpdateRequestDto);
         Task<Category> DeleteAsync(Category category, bool permanent = false);
 
         Task<Category> FindCategoryAsync(Category category);
