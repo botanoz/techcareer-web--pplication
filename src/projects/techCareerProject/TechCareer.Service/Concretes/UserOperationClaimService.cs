@@ -7,22 +7,23 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using TechCareer.DataAccess.Repositories.Abstracts;
 using TechCareer.Service.Abstracts;
 
 namespace TechCareer.Service.Concretes
 {
     public class UserOperationClaimService : IUserOperationClaimService
     {
-        private readonly IUserOperationClaimService _userOperationClaimService;
+        private readonly IUserOperationClaimRepository _userOperationClaimRepository;
 
-        public UserOperationClaimService(IUserOperationClaimService userOperationClaimService)
+        public UserOperationClaimService(IUserOperationClaimRepository userOperationClaimRepository)
         {
-            _userOperationClaimService = userOperationClaimService;
+            _userOperationClaimRepository = userOperationClaimRepository;
         }
 
         public async Task<UserOperationClaim> AddAsync(UserOperationClaim userOperationClaim)
         {
-            UserOperationClaim addedUserOperationClaim = await _userOperationClaimService.AddAsync(userOperationClaim);
+            UserOperationClaim addedUserOperationClaim = await _userOperationClaimRepository.AddAsync(userOperationClaim);
 
             return addedUserOperationClaim;
         }
@@ -38,20 +39,20 @@ namespace TechCareer.Service.Concretes
 
         public async Task<UserOperationClaim?> GetAsync(Expression<Func<UserOperationClaim, bool>> predicate, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            var userOperationClaim = await _userOperationClaimService.GetAsync(predicate);
+            var userOperationClaim = await _userOperationClaimRepository.GetAsync(predicate);
 
             return userOperationClaim;
         }
 
         public async Task<List<UserOperationClaim>> GetListAsync(Expression<Func<UserOperationClaim, bool>>? predicate = null, Func<IQueryable<UserOperationClaim>, IOrderedQueryable<UserOperationClaim>>? orderBy = null, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            var userOperationClaims = await _userOperationClaimService.GetListAsync();
+            var userOperationClaims = await _userOperationClaimRepository.GetListAsync();
             return userOperationClaims;
         }
 
         public async Task<Paginate<UserOperationClaim>> GetPaginateAsync(Expression<Func<UserOperationClaim, bool>>? predicate = null, Func<IQueryable<UserOperationClaim>, IOrderedQueryable<UserOperationClaim>>? orderBy = null, bool include = false, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
-            IQueryable<UserOperationClaim> userOperationClaims = (IQueryable<UserOperationClaim>)_userOperationClaimService.GetListAsync();
+            IQueryable<UserOperationClaim> userOperationClaims = (IQueryable<UserOperationClaim>)_userOperationClaimRepository.GetListAsync();
 
             if (!withDeleted)
                userOperationClaims = userOperationClaims.Where(c => !c.IsDeleted);
