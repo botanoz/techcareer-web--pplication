@@ -12,35 +12,26 @@ namespace TechCareer.Service.Abstracts
 {
     public interface ICategoryService
     {
-        Task<Category?> GetAsync(
-            Expression <Func<Category,bool>> predicate,
-            Category category,
-            bool include = false,
-            bool withDeleted = false,
-            bool enableTracking = true,
-            CancellationToken cancellationToken = default
-           
-      );
+        Task<CategoryResponseDto?> GetAsync(Expression<Func<Category, bool>> predicate, bool withDeleted = false, CancellationToken cancellationToken = default);
 
-        Task<Paginate<Category?>> GetPaginateAsync
+        Task<Paginate<CategoryResponseDto?>> GetPaginateAsync
             (Expression<Func<Category, bool>>? predicate = null,
-            bool include = false,
             int index = 0,
             int size = 10,
             bool withDeleted = false,
             bool enableTracking = true,
-            CancellationToken cansellationToken = default);
+            CancellationToken cancellationToken = default);
 
-        Task<List<Category>> GetListAsync(Expression<Func<Category, bool>>? predicate = null,
+        Task<List<CategoryResponseDto>> GetListAsync(Expression<Func<Category, bool>>? predicate = null,
             bool include = false,
             bool withDeleted = false,
             bool enableTracking = true,
             CancellationToken cancellationToken = default);
 
-        Task<Category> AddAsync(CategoryAddRequestDto categoryAddRequestDto);
-        Task<Category> UpdateAsync(CategoryUpdateRequestDto categoryUpdateRequestDto);
-        Task<Category> DeleteAsync(Category category, bool permanent = false);
+        Task<CategoryResponseDto> AddAsync(CategoryAddRequestDto categoryAddRequestDto);
+        Task<CategoryResponseDto> UpdateAsync(CategoryUpdateRequestDto categoryUpdateRequestDto);
+        Task<CategoryResponseDto> DeleteAsync(CategoryRequestDto categoryRequestDto, bool permanent = false);
 
-        Task<Category> FindCategoryAsync(Category category);
+        Task<CategoryResponseDto> FindCategoryAsync(CategoryRequestDto categoryRequestDto);
     }
 }
