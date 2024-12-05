@@ -84,7 +84,11 @@ namespace TechCareer.Service.Concretes
         }
 
         // Get a single category with optional filters
-        public async Task<CategoryResponseDto?> GetAsync(Expression<Func<Category, bool>> predicate, bool withDeleted = false, CancellationToken cancellationToken = default)
+        public async Task<CategoryResponseDto?> GetAsync(
+            Expression<Func<Category, bool>> predicate,
+            bool withDeleted = false, 
+            CancellationToken cancellationToken = default
+        )
         {
             var category = await _categoryRepository.GetAsync(predicate, withDeleted: withDeleted);
 
