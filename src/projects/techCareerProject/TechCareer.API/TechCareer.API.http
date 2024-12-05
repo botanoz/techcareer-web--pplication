@@ -1,6 +1,0 @@
-@TechCareer.API_HostAddress = https://localhost:7122/api
-
-GET {{TechCareer.API_HostAddress}}/Category?includeDeleted=false
-Accept: application/json
-
-###

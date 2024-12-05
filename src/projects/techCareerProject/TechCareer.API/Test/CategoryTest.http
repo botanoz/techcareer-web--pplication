@@ -1,0 +1,7 @@
+﻿
+
+#GetAllCategory
+GET  https://localhost:7122/api/Category?includeDeleted=false
+Accept: application/json
+
+
