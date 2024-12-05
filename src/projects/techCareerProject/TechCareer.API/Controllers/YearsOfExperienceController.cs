@@ -22,12 +22,20 @@ namespace TechCareer.API.Controllers
         public async Task<IActionResult> GetAllYearsOfExperience()
         {
             var yearsOfExperience = await _yearsOfExperienceRepository.GetListAsync();
+
             if (yearsOfExperience == null || yearsOfExperience.Count == 0)
             {
                 return NotFound("No years of experience found.");
             }
-            return Ok(yearsOfExperience);
+
+            var yearsOfExperienceDtos = yearsOfExperience.Select(yoe => new YearsOfExperienceResponseDto
+            {
+                Name = yoe.Name
+            }).ToList();
+
+            return Ok(yearsOfExperienceDtos);
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetYearsOfExperience(int id)
@@ -37,8 +45,15 @@ namespace TechCareer.API.Controllers
             {
                 return NotFound($"Years of experience with id {id} not found.");
             }
-            return Ok(yearsOfExperience);
+
+            var yearsOfExperienceDto = new YearsOfExperienceResponseDto
+            {
+                Name = yearsOfExperience.Name
+            };
+
+            return Ok(yearsOfExperienceDto);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> CreateYearsOfExperience([FromBody] YearsOfExperienceAddRequestDto yearsOfExperienceAddRequestDto)
@@ -90,8 +105,19 @@ namespace TechCareer.API.Controllers
                 return NotFound($"Years of experience with id {id} not found.");
             }
 
+            var yearsOfExperienceDto = new YearsOfExperienceResponseDto
+            {
+                Name = yearsOfExperience.Name
+            };
+
             await _yearsOfExperienceRepository.DeleteAsync(yearsOfExperience);
-            return NoContent(); 
+
+            return Ok(new
+            {
+                Message = "Years of experience deleted successfully.",
+                DeletedYearsOfExperience = yearsOfExperienceDto
+            });
         }
+
     }
 }
