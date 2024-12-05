@@ -1,6 +1,6 @@
 ﻿
 #PostAllAuth
-POST https://localhost:7122/api/Category
+POST https://localhost:7122/api/Auth/login
 Accept: application/json
 
 ###

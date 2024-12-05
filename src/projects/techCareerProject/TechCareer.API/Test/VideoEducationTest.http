@@ -1,6 +1,6 @@
 ﻿
 #GetAllVideoEducation
-GET https://localhost:7122/api/VideoEducation?index=1&size=10&include=false&withDeleted=false&enableTracking=true
+GET https://localhost:7122/api/VideoEducation?includeDeleted=true
 Accept: application/json
 
 ###
@@ -22,3 +22,7 @@ Accept: application/json
 DELETE https://localhost:7122/api/VideoEducation/1?permanent=false
 Accept: application/json
 
+###
+#GetAllVideoEducation
+GET https://localhost:7122/api/VideoEducation/paginate?pageIndex=1&pageSize=10&includeDeleted=false
+Accept: application/json
