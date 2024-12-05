@@ -11,7 +11,8 @@ using TechCareer.DataAccess;
 using TechCareer.Service;
 using TechCareer.Service.DependencyResolvers.Autofac;
 using System.Text.Json.Serialization;
-//botan özalp
+using Microsoft.OpenApi.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -19,7 +20,7 @@ builder.Services.AddDataAccessServices(builder.Configuration);
 builder.Services.AddServiceDependencies();
 builder.Services.AddSecurityServices();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddStackExchangeRedisCache(opt=>opt.Configuration="localhost:6379");
+builder.Services.AddStackExchangeRedisCache(opt => opt.Configuration = "localhost:6379");
 ServiceTool.Create(builder.Services);
 
 const string tokenOptionsConfigurationSection = "TokenOptions";
@@ -44,7 +45,6 @@ builder.Services
 
 builder.Services.AddAuthorization(options =>
 {
-    // �zel yetkilendirme politikalar� tan�mlay�n (iste�e ba�l�)
     options.AddPolicy("DefaultPolicy", policy =>
     {
         policy.RequireAuthenticatedUser();
@@ -59,9 +59,46 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.WriteIndented = true;
     });
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Add CORS configuration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
+// Swagger configuration with Authorization
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter 'Bearer' [space] and then your token in the text input below. Example: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\""
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 builder.Host.ConfigureContainer<ContainerBuilder>(container =>
@@ -70,7 +107,10 @@ builder.Host.ConfigureContainer<ContainerBuilder>(container =>
 });
 
 var app = builder.Build();
-//app.ConfigureCustomExceptionMiddleware();
+
+// CORS middleware
+app.UseCors("AllowAllOrigins");
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -79,7 +119,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 
 app.UseAuthentication();
 app.UseAuthorization();

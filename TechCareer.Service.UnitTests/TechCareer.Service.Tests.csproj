@@ -19,18 +19,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\src\core\Core.AOP\Core.AOP.csproj" />
+    <ProjectReference Include="..\src\core\Core.CrossCuttingConcerns\Core.CrossCuttingConcerns.csproj" />
+    <ProjectReference Include="..\src\core\Core.Persistence\Core.Persistence.csproj" />
+    <ProjectReference Include="..\src\core\Core.Security\Core.Security.csproj" />
     <ProjectReference Include="..\src\projects\techCareerProject\TechCareer.API\TechCareer.API.csproj" />
     <ProjectReference Include="..\src\projects\techCareerProject\TechCareer.DataAccess\TechCareer.DataAccess.csproj" />
     <ProjectReference Include="..\src\projects\techCareerProject\TechCareer.Models\TechCareer.Models.csproj" />
     <ProjectReference Include="..\src\projects\techCareerProject\TechCareer.Service\TechCareer.Service.csproj" />
-    <ProjectReference Include="..\updated project\src\core\Core.AOP\Core.AOP.csproj" />
-    <ProjectReference Include="..\updated project\src\core\Core.CrossCuttingConcerns\Core.CrossCuttingConcerns.csproj" />
-    <ProjectReference Include="..\updated project\src\core\Core.Persistence\Core.Persistence.csproj" />
-    <ProjectReference Include="..\updated project\src\core\Core.Security\Core.Security.csproj" />
-    <ProjectReference Include="..\updated project\src\projects\techCareerProject\TechCareer.API\TechCareer.API.csproj" />
-    <ProjectReference Include="..\updated project\src\projects\techCareerProject\TechCareer.DataAccess\TechCareer.DataAccess.csproj" />
-    <ProjectReference Include="..\updated project\src\projects\techCareerProject\TechCareer.Models\TechCareer.Models.csproj" />
-    <ProjectReference Include="..\updated project\src\projects\techCareerProject\TechCareer.Service\TechCareer.Service.csproj" />
   </ItemGroup>
 
   <ItemGroup>

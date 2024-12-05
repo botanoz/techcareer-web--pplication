@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using TechCareer.DataAccess.Repositories.Concretes;
+using TechCareer.Models.Dtos.Category;
+using TechCareer.Models.Dtos.Event;
 using TechCareer.Service.Abstracts;
 using TechCareer.Service.Rules;
 
@@ -24,11 +26,23 @@ namespace TechCareer.Service.Concretes
        
         }
 
-        public async Task<Event> AddAsync(Event Event)
+        public async Task<Event> AddAsync(EventAddRequestDto eventAddRequestDto)
         {
             try
             {
+
+                Event Event = new Event(
+                    eventAddRequestDto.Title, 
+                    eventAddRequestDto.Description, 
+                    eventAddRequestDto.ImageUrl, 
+                    eventAddRequestDto.StartDate, 
+                    eventAddRequestDto.EndDate, 
+                    eventAddRequestDto.ApplicationDeadline, 
+                    eventAddRequestDto.ParticipationText, 
+                    eventAddRequestDto.CategoryId);
+
                 Event addedEvent = await _eventRepository.AddAsync(Event);
+
                 return addedEvent;
             }
             catch (Exception ex)
@@ -139,12 +153,20 @@ namespace TechCareer.Service.Concretes
             }
         }
 
-        public async Task<Event> UpdateAsync(Event Event)
+        public async Task<Event> UpdateAsync(EventUpdateRequestDto eventUpdateRequestDto)
         {
-            var updatedEvent = (await GetListAsync(x => x.Id == Event.Id)).FirstOrDefault();
+            var updatedEvent = await _eventRepository.GetAsync(x => x.Id == eventUpdateRequestDto.Id);
             if (updatedEvent != null)
             {
-                updatedEvent = Event;
+                updatedEvent.Title = eventUpdateRequestDto.Title;
+                updatedEvent.Description = eventUpdateRequestDto.Description;
+                updatedEvent.ImageUrl = eventUpdateRequestDto.ImageUrl;
+                updatedEvent.StartDate = eventUpdateRequestDto.StartDate;
+                updatedEvent.EndDate = eventUpdateRequestDto.EndDate;
+                updatedEvent.ApplicationDeadline = eventUpdateRequestDto.ApplicationDeadline;
+                updatedEvent.ParticipationText = eventUpdateRequestDto.ParticipationText;
+                updatedEvent.CategoryId = eventUpdateRequestDto.CategoryId;
+                await _eventRepository.UpdateAsync(updatedEvent);
                 return updatedEvent;
             }
            else

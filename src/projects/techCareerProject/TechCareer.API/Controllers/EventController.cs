@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using TechCareer.Service.Abstracts;
 using TechCareer.Service.Concretes;
 using Core.Security.Entities;
+using TechCareer.Models.Dtos.Event;
 
 namespace TechCareer.API.Controllers
 {
@@ -38,28 +39,26 @@ namespace TechCareer.API.Controllers
 
   
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] Event Event)
+        public async Task<IActionResult> Add([FromBody] EventAddRequestDto eventAddRequestDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var AddedEvent = await _eventService.AddAsync(Event);
+            var AddedEvent = await _eventService.AddAsync(eventAddRequestDto);
             return CreatedAtAction(nameof(GetById), new { id = AddedEvent.Id }, AddedEvent);
         }
 
     
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] Event Event)
+        [HttpPut]
+        public async Task<IActionResult> Update([FromBody] EventUpdateRequestDto eventUpdateRequestDto)
         {
-            if (id != Event.Id)
-                return BadRequest(new { Message = "event ID mismatch." });
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-                var UpdatedEvent = await _eventService.UpdateAsync(Event);
+                var UpdatedEvent = await _eventService.UpdateAsync(eventUpdateRequestDto);
                 return Ok(UpdatedEvent);
             }
             catch (KeyNotFoundException)

@@ -3,6 +3,8 @@ using System.Linq.Expressions;
 using TechCareer.Service.Abstracts;
 using TechCareer.Service.Concretes;
 using Core.Security.Entities;
+using TechCareer.Models.Dtos.Job;
+using TechCareer.Models.Dtos.Event;
 
 namespace TechCareer.API.Controllers
 {
@@ -38,33 +40,31 @@ namespace TechCareer.API.Controllers
 
  
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] Job job)
+        public async Task<IActionResult> Add([FromBody] JobAddRequestDto jobAddRequestDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var addedJob = await _jobService.AddAsync(job);
+            var addedJob = await _jobService.AddAsync(jobAddRequestDto);
             return CreatedAtAction(nameof(GetById), new { id = addedJob.Id }, addedJob);
         }
 
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Job job)
+        [HttpPut]
+        public async Task<IActionResult> Update([FromBody] JobUpdateRequestDto jobUpdateRequestDto)
         {
-            if (id != job.Id)
-                return BadRequest(new { Message = "Job ID mismatch." });
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-                var updatedJob = await _jobService.UpdateAsync(job);
-                return Ok(updatedJob);
+                var UpdatedEvent = await _jobService.UpdateAsync(jobUpdateRequestDto);
+                return Ok(UpdatedEvent);
             }
             catch (KeyNotFoundException)
             {
-                return NotFound(new { Message = "Instructor not found." });
+                return NotFound(new { Message = "Event not found." });
             }
         }
 

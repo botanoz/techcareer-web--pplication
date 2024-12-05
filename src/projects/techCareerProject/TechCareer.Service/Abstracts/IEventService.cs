@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using TechCareer.Models.Dtos.Event;
 
 namespace TechCareer.Service.Abstracts
 {
@@ -38,9 +39,9 @@ namespace TechCareer.Service.Abstracts
             CancellationToken cancellationToken = default);
 
 
-        Task<Event> AddAsync(Event Event);
-        Task<Event> UpdateAsync(Event Event);
+        Task<Event> AddAsync(EventAddRequestDto eventAddRequestDto);
+        Task<Event> UpdateAsync(EventUpdateRequestDto eventUpdateRequestDto);
         Task<Event> DeleteAsync(Event Event, bool permanent = false);
 
     }
-}
+} 

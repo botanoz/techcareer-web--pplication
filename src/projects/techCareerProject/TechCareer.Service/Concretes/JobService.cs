@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using TechCareer.DataAccess.Repositories.Concretes;
+using TechCareer.Models.Dtos.Event;
+using TechCareer.Models.Dtos.Job;
 using TechCareer.Service.Abstracts;
 
 namespace TechCareer.Service.Concretes
@@ -22,11 +24,31 @@ namespace TechCareer.Service.Concretes
             _jobRepository = jobRepository;
         }
 
-        public async Task<Job> AddAsync(Job job)
+        public async Task<Job> AddAsync(JobAddRequestDto jobAddRequestDto)
         {
-            Job addedJob = await _jobRepository.AddAsync(job);
+            try
+            {
+                Job job = new Job(
+                    jobAddRequestDto.Title,
+                    jobAddRequestDto.TypeOfWork,
+                    jobAddRequestDto.YearsOfExperience,
+                    jobAddRequestDto.WorkPlace,
+                    jobAddRequestDto.StartDate,
+                    jobAddRequestDto.Content,
+                    jobAddRequestDto.Description,
+                    jobAddRequestDto.Skills,
+                    jobAddRequestDto.CompanyId
+                    );
 
-            return addedJob;
+                Job addedJob = await _jobRepository.AddAsync(job);
+
+                return addedJob;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
+                throw new ApplicationException("Job eklenemedi", ex);
+            }
         }
 
         public async Task<Job> DeleteAsync(Job job, bool permanent = false)
@@ -83,9 +105,27 @@ namespace TechCareer.Service.Concretes
             };
         }
 
-        public async Task<Job> UpdateAsync(Job job)
+        public async Task<Job> UpdateAsync(JobUpdateRequestDto jobUpdateRequestDto)
         {
-            throw new NotImplementedException();
+            var updatedJob = await _jobRepository.GetAsync(x => x.Id == jobUpdateRequestDto.Id);
+            if (updatedJob != null)
+            {
+                updatedJob.Title = jobUpdateRequestDto.Title;
+                updatedJob.Description = jobUpdateRequestDto.Description;
+                updatedJob.TypeOfWork = jobUpdateRequestDto.TypeOfWork;
+                updatedJob.YearsOfExperience = jobUpdateRequestDto.YearsOfExperience;
+                updatedJob.WorkPlace = jobUpdateRequestDto.WorkPlace;
+                updatedJob.StartDate = jobUpdateRequestDto.StartDate;
+                updatedJob.Content = jobUpdateRequestDto.Content;
+                updatedJob.Skills = jobUpdateRequestDto.Skills;
+                updatedJob.CompanyId = jobUpdateRequestDto.CompanyId;
+                await _jobRepository.UpdateAsync(updatedJob);
+                return updatedJob;
+            }
+            else
+            {
+                throw new KeyNotFoundException("Aradığınız iş bulunamamıştır.");
+            }
         }
     }
 }
