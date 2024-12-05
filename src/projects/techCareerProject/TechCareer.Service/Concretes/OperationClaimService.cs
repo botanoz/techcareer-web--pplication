@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using TechCareer.DataAccess.Repositories.Abstracts;
+using TechCareer.Models.Dtos.OperationClaim;
 using TechCareer.Service.Abstracts;
 
 namespace TechCareer.Service.Concretes
@@ -21,21 +22,35 @@ namespace TechCareer.Service.Concretes
             _operationClaimRepository = operationClaimRepository;
         }
 
-        public async Task<OperationClaim> AddAsync(OperationClaim OperationClaim)
+        public async Task<OperationClaim> AddAsync(OperationClaim operationClaim)
         {
-            OperationClaim addedOperationClaim = await _operationClaimRepository.AddAsync(OperationClaim);
+            if (string.IsNullOrWhiteSpace(operationClaim.Name))
+                throw new ArgumentException("Operation claim name cannot be null or empty.");
 
-            return addedOperationClaim;
+            var addedClaim = await _operationClaimRepository.AddAsync(operationClaim);
+            return addedClaim;
         }
 
-        public async Task<OperationClaim> DeleteAsync(OperationClaim OperationClaim, bool permanent = false)
+        public async Task<OperationClaim> DeleteAsync(OperationClaimDeleteRequestDto operationClaimDeleteRequestDto)
         {
-            var deletedOperationClaim = (await GetListAsync(x => x.Id == OperationClaim.Id)).FirstOrDefault();
+            var existingClaim = await _operationClaimRepository.GetAsync(c => c.Id == operationClaimDeleteRequestDto.Id);
 
-            deletedOperationClaim.IsDeleted = true;
+            if (existingClaim == null)
+                throw new KeyNotFoundException("Operation claim not found.");
 
-            return deletedOperationClaim;
+            if (operationClaimDeleteRequestDto.Permanent)
+            {
+                await _operationClaimRepository.DeleteAsync(existingClaim);
+            }
+            else
+            {
+                existingClaim.IsDeleted = true;
+                await _operationClaimRepository.UpdateAsync(existingClaim);
+            }
+
+            return existingClaim;
         }
+
 
         public async Task<OperationClaim?> GetAsync(Expression<Func<OperationClaim, bool>> predicate, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
@@ -78,9 +93,19 @@ namespace TechCareer.Service.Concretes
             };
         }
 
-        public Task<OperationClaim> UpdateAsync(OperationClaim OperationClaim)
+        public async Task<OperationClaim> UpdateAsync(OperationClaimUpdateRequestDto updateRequestDto)
         {
-            throw new NotImplementedException();
+            var existingClaim = await _operationClaimRepository.GetAsync(c => c.Id == updateRequestDto.Id);
+
+            if (existingClaim == null)
+                throw new KeyNotFoundException("Operation claim not found.");
+
+            existingClaim.Name = updateRequestDto.Name;
+
+            var updatedClaim = await _operationClaimRepository.UpdateAsync(existingClaim);
+
+            return updatedClaim;
         }
+
     }
 }

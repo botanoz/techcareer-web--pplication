@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using TechCareer.Service.Abstracts;
 using TechCareer.Service.Concretes;
 using Core.Security.Entities;
+using TechCareer.Models.Dtos.Category;
 
 namespace TechCareer.API.Controllers
 {
@@ -41,28 +42,26 @@ namespace TechCareer.API.Controllers
 
     
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] Category Category)
+        public async Task<IActionResult> Add([FromBody] CategoryAddRequestDto categoryAddRequestDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var addedCategory = await _CategoryService.AddAsync(Category);
+            var addedCategory = await _CategoryService.AddAsync(categoryAddRequestDto);
             return CreatedAtAction(nameof(GetById), new { id = addedCategory.Id }, addedCategory);
         }
 
   
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Category Category)
+        [HttpPut]
+        public async Task<IActionResult> Update([FromBody] CategoryUpdateRequestDto categoryUpdateRequestDto)
         {
-            if (id != Category.Id)
-                return BadRequest(new { Message = "Category ID mismatch." });
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-                var updatedCategory = await _CategoryService.UpdateAsync(Category);
+                var updatedCategory = await _CategoryService.UpdateAsync(categoryUpdateRequestDto);
                 return Ok(updatedCategory);
             }
             catch (KeyNotFoundException)

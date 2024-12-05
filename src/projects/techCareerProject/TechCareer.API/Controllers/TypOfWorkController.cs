@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using Core.Security.Entities;
 using System.Collections.Generic;
+using TechCareer.DataAccess.Repositories.Concretes;
+using TechCareer.Models.Dtos.TypeOfWork;
 
 namespace TechCareer.API.Controllers
 {
@@ -40,34 +42,45 @@ namespace TechCareer.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateTypOfWork([FromBody] TypOfWork typOfWork)
+        public async Task<IActionResult> CreateTypeOfWork([FromBody] TypeOfWorkAddRequestDto typeOfWorkAddRequestDto)
         {
-            if (typOfWork == null)
+            if (typeOfWorkAddRequestDto == null || string.IsNullOrWhiteSpace(typeOfWorkAddRequestDto.Name))
             {
-                return BadRequest("Type of work data is required.");
+                return BadRequest("Type of work name is required.");
             }
 
-            var createdTypOfWork = await _typOfWorkRepository.AddAsync(typOfWork);
-            return CreatedAtAction(nameof(GetTypOfWork), new { id = createdTypOfWork.Id }, createdTypOfWork);
+            var typeOfWork = new TypOfWork
+            {
+                Name = typeOfWorkAddRequestDto.Name
+            };
+
+            var createdTypeOfWork = await _typOfWorkRepository.AddAsync(typeOfWork);
+
+            return CreatedAtAction(nameof(GetTypOfWork), new { id = createdTypeOfWork.Id }, createdTypeOfWork);
         }
 
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTypOfWork(int id, [FromBody] TypOfWork typOfWork)
+        public async Task<IActionResult> UpdateTypeOfWork(int id, [FromBody] TypeOfWorkUpdateRequestDto typeOfWorkUpdateRequestDto)
         {
-            if (typOfWork == null || typOfWork.Id != id)
+            if (typeOfWorkUpdateRequestDto == null || string.IsNullOrWhiteSpace(typeOfWorkUpdateRequestDto.Name))
             {
                 return BadRequest("Type of work data is invalid.");
             }
 
-            var existingTypOfWork = await _typOfWorkRepository.GetAsync(t => t.Id == id);
-            if (existingTypOfWork == null)
+            var existingTypeOfWork = await _typOfWorkRepository.GetAsync(t => t.Id == id);
+            if (existingTypeOfWork == null)
             {
                 return NotFound($"Type of work with id {id} not found.");
             }
 
-            var updatedTypOfWork = await _typOfWorkRepository.UpdateAsync(typOfWork);
-            return Ok(updatedTypOfWork);
+            existingTypeOfWork.Name = typeOfWorkUpdateRequestDto.Name;
+
+            var updatedTypeOfWork = await _typOfWorkRepository.UpdateAsync(existingTypeOfWork);
+
+            return Ok(updatedTypeOfWork);
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTypOfWork(int id)

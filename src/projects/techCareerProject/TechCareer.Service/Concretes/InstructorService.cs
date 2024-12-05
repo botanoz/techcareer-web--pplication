@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using TechCareer.DataAccess.Repositories.Abstracts;
+using TechCareer.Models.Dtos.Instructor;
 using TechCareer.Service.Abstracts;
 
 namespace TechCareer.Service.Concretes
@@ -29,22 +30,40 @@ namespace TechCareer.Service.Concretes
             return addedInstructor;
         }
 
-        public async Task<Instructor> DeleteAsync(Instructor Instructor, bool permanent = false)
+        public async Task<Instructor> DeleteAsync(InstructorDeleteRequestDto deleteRequestDto)
         {
+            if (deleteRequestDto == null)
+                throw new ArgumentNullException(nameof(deleteRequestDto), "Delete request data is required.");
+
             try
             {
-                var deletedInstructor = (await GetListAsync(x => x.Id == Instructor.Id)).FirstOrDefault();
+                if (deleteRequestDto.Permanent)
+                {
+                    // Kalıcı silme: Veritabanından tamamen kaldır
+                    var instructorToDelete = await _instructorRepository.GetAsync(x => x.Id == deleteRequestDto.Id);
+                    if (instructorToDelete == null)
+                        throw new KeyNotFoundException("Instructor not found.");
 
-                deletedInstructor.IsDeleted = true;
+                    await _instructorRepository.DeleteAsync(instructorToDelete);
+                    return instructorToDelete;
+                }
+                else
+                {
+                    // Yumuşak silme: IsDeleted alanını işaretle
+                    var instructorToSoftDelete = await _instructorRepository.GetAsync(x => x.Id == deleteRequestDto.Id);
+                    if (instructorToSoftDelete == null)
+                        throw new KeyNotFoundException("Instructor not found.");
 
-                return deletedInstructor;
+                    instructorToSoftDelete.IsDeleted = true;
+                    await _instructorRepository.UpdateAsync(instructorToSoftDelete);
+                    return instructorToSoftDelete;
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
-                throw new ApplicationException(ex.Message, ex);
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                throw new ApplicationException("An error occurred while deleting the instructor.", ex);
             }
-
         }
 
         public async Task<Instructor?> GetAsync(Expression<Func<Instructor, bool>> predicate, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
@@ -113,16 +132,46 @@ namespace TechCareer.Service.Concretes
             }
         }
 
-        public async Task<Instructor> UpdateAsync(Instructor Instructor)
+        public async Task<Instructor> UpdateAsync(Instructor instructor)
         {
-            //var existingInstructor = await _instructorRepository.GetAsync(Instructor.Id);
-            //if (existingInstructor == null) throw new KeyNotFoundException("Instructor not found.");
+            if (instructor == null)
+                throw new ArgumentNullException(nameof(instructor), "Güncelleme için eğitmen bilgisi gereklidir.");
 
-            //_dbContext.Entry(existingInstructor).CurrentValues.SetValues(instructor);
-            //await _dbContext.SaveChangesAsync();
+            try
+            {
+               
+                var existingInstructor = await _instructorRepository.GetAsync(x => x.Id == instructor.Id);
 
-            //return existingInstructor;
-            return null;
+                if (existingInstructor == null)
+                    throw new KeyNotFoundException("Güncellenecek eğitmen bulunamadı.");
+
+
+                existingInstructor.Name = instructor.Name;
+                existingInstructor.About = instructor.About;
+               
+                var updatedInstructor = await _instructorRepository.UpdateAsync(existingInstructor);
+                return updatedInstructor;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
+                throw new ApplicationException("Eğitmen güncellenirken bir hata oluştu.", ex);
+            }
+        }
+
+
+        public async Task<Instructor?> GetByIdAsync(Guid id)
+        {
+            try
+            {
+                var instructor = await _instructorRepository.GetAsync(x => x.Id == id);
+                return instructor;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
+                throw new ApplicationException(ex.Message, ex);
+            }
         }
     }
 }

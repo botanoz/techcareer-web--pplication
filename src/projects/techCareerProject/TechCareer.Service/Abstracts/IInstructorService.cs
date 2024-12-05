@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using TechCareer.Models.Dtos.Instructor;
 
 namespace TechCareer.Service.Abstracts
 {
@@ -41,7 +42,8 @@ namespace TechCareer.Service.Abstracts
 
         Task<Instructor> AddAsync(Instructor Instructor);
         Task<Instructor> UpdateAsync(Instructor Instructor);
-        Task<Instructor> DeleteAsync(Instructor Instructor, bool permanent = false);
+        Task<Instructor> DeleteAsync(InstructorDeleteRequestDto deleteRequestDto);
+        Task<Instructor?> GetByIdAsync(Guid id);
 
     }
 }

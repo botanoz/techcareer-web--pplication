@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using Core.Security.Entities;
 using System.Collections.Generic;
+using TechCareer.Models.Dtos.YearsOfExperience;
 
 namespace TechCareer.API.Controllers
 {
@@ -40,21 +41,28 @@ namespace TechCareer.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateYearsOfExperience([FromBody] YearsOfExperience yearsOfExperience)
+        public async Task<IActionResult> CreateYearsOfExperience([FromBody] YearsOfExperienceAddRequestDto yearsOfExperienceAddRequestDto)
         {
-            if (yearsOfExperience == null)
+            if (yearsOfExperienceAddRequestDto == null || string.IsNullOrWhiteSpace(yearsOfExperienceAddRequestDto.Name))
             {
-                return BadRequest("Years of experience data is required.");
+                return BadRequest("Years of experience name is required.");
             }
 
+            var yearsOfExperience = new YearsOfExperience
+            {
+                Name = yearsOfExperienceAddRequestDto.Name
+            };
+
             var createdYearsOfExperience = await _yearsOfExperienceRepository.AddAsync(yearsOfExperience);
+
             return CreatedAtAction(nameof(GetYearsOfExperience), new { id = createdYearsOfExperience.Id }, createdYearsOfExperience);
         }
 
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateYearsOfExperience(int id, [FromBody] YearsOfExperience yearsOfExperience)
+        public async Task<IActionResult> UpdateYearsOfExperience(int id, [FromBody] YearsOfExperienceUpdateRequestDto requestDto)
         {
-            if (yearsOfExperience == null || yearsOfExperience.Id != id)
+            if (requestDto == null || string.IsNullOrWhiteSpace(requestDto.Name))
             {
                 return BadRequest("Years of experience data is invalid.");
             }
@@ -65,9 +73,13 @@ namespace TechCareer.API.Controllers
                 return NotFound($"Years of experience with id {id} not found.");
             }
 
-            var updatedYearsOfExperience = await _yearsOfExperienceRepository.UpdateAsync(yearsOfExperience);
+            existingYearsOfExperience.Name = requestDto.Name;
+
+            var updatedYearsOfExperience = await _yearsOfExperienceRepository.UpdateAsync(existingYearsOfExperience);
+
             return Ok(updatedYearsOfExperience);
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteYearsOfExperience(int id)

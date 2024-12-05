@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using Core.Security.Entities;
 using System.Collections.Generic;
+using TechCareer.Models.Dtos.Dictionary;
 
 namespace TechCareer.API.Controllers
 {
@@ -40,23 +41,32 @@ namespace TechCareer.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateDictionary([FromBody] Dictionary dictionary)
+        public async Task<IActionResult> CreateDictionary([FromBody] DictionaryAddRequestDto dictionaryAddRequestDto)
         {
-            if (dictionary == null)
+            if (dictionaryAddRequestDto == null)
             {
                 return BadRequest("Dictionary data is required.");
             }
+
+            
+            var dictionary = new Dictionary
+            {
+                Title = dictionaryAddRequestDto.Title,
+                Description = dictionaryAddRequestDto.Description,
+           
+            };
 
             var createdDictionary = await _dictionaryRepository.AddAsync(dictionary);
             return CreatedAtAction(nameof(GetDictionary), new { id = createdDictionary.Id }, createdDictionary);
         }
 
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateDictionary(int id, [FromBody] Dictionary dictionary)
+        public async Task<IActionResult> UpdateDictionary(int id, [FromBody] DictionaryUpdateRequestDto dictionaryUpdateRequestDto)
         {
-            if (dictionary == null || dictionary.Id != id)
+            if (dictionaryUpdateRequestDto == null)
             {
-                return BadRequest("Dictionary data is invalid.");
+                return BadRequest("Dictionary data is required.");
             }
 
             var existingDictionary = await _dictionaryRepository.GetAsync(d => d.Id == id);
@@ -65,9 +75,15 @@ namespace TechCareer.API.Controllers
                 return NotFound($"Dictionary with id {id} not found.");
             }
 
-            var updatedDictionary = await _dictionaryRepository.UpdateAsync(dictionary);
+            
+            existingDictionary.Title = dictionaryUpdateRequestDto.Title ?? existingDictionary.Title;
+            existingDictionary.Description = dictionaryUpdateRequestDto.Description ?? existingDictionary.Description;
+            
+
+            var updatedDictionary = await _dictionaryRepository.UpdateAsync(existingDictionary);
             return Ok(updatedDictionary);
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDictionary(int id)
