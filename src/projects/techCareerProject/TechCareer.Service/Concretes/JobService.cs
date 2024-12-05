@@ -1,4 +1,5 @@
-﻿using Core.Persistence.Extensions;
+﻿using Core.CrossCuttingConcerns.Serilog;
+using Core.Persistence.Extensions;
 using Core.Security.Entities;
 using System;
 using System.Collections.Generic;
@@ -17,10 +18,12 @@ namespace TechCareer.Service.Concretes
     public class JobService : IJobService
     {
         private readonly IJobRepository _jobRepository;
+        private readonly LoggerServiceBase _logger;
 
-        public JobService(IJobRepository jobRepository)
+        public JobService(IJobRepository jobRepository, LoggerServiceBase logger)
         {
             _jobRepository = jobRepository;
+            _logger = logger;
         }
 
         // Get a single job with optional filters
@@ -31,24 +34,33 @@ namespace TechCareer.Service.Concretes
             bool enableTracking = true,
             CancellationToken cancellationToken = default)
         {
-            var job = await _jobRepository.GetAsync(predicate, withDeleted: withDeleted);
 
-            if (job == null)
-                return null;
-
-            return new JobResponseDto
+            try
             {
-                Id = job.Id,
-                Title = job.Title,
-                TypeOfWork = job.TypeOfWork,
-                YearsOfExperience = job.YearsOfExperience,
-                WorkPlace = job.WorkPlace,
-                StartDate = job.StartDate,
-                Content = job.Content,
-                Description = job.Description,
-                Skills = job.Skills,
-                CompanyId = job.CompanyId
-            };
+                var job = await _jobRepository.GetAsync(predicate, withDeleted: withDeleted);
+
+                if (job == null)
+                    return null;
+
+                return new JobResponseDto
+                {
+                    Id = job.Id,
+                    Title = job.Title,
+                    TypeOfWork = job.TypeOfWork,
+                    YearsOfExperience = job.YearsOfExperience,
+                    WorkPlace = job.WorkPlace,
+                    StartDate = job.StartDate,
+                    Content = job.Content,
+                    Description = job.Description,
+                    Skills = job.Skills,
+                    CompanyId = job.CompanyId
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
         }
 
         // Get paginated list of jobs
@@ -62,28 +74,37 @@ namespace TechCareer.Service.Concretes
             bool enableTracking = true,
             CancellationToken cancellationToken = default)
         {
-            var paginateResult = await _jobRepository.GetPaginateAsync(predicate, index: index, size: size, enableTracking: enableTracking, withDeleted: withDeleted);
-
-            return new Paginate<JobResponseDto>
+            try
             {
-                Items = paginateResult.Items.Select(job => new JobResponseDto
+                var paginateResult = await _jobRepository.GetPaginateAsync(predicate, index: index, size: size, enableTracking: enableTracking, withDeleted: withDeleted);
+
+                return new Paginate<JobResponseDto>
                 {
-                    Id = job.Id,
-                    Title = job.Title,
-                    TypeOfWork = job.TypeOfWork,
-                    YearsOfExperience = job.YearsOfExperience,
-                    WorkPlace = job.WorkPlace,
-                    StartDate = job.StartDate,
-                    Content = job.Content,
-                    Description = job.Description,
-                    Skills = job.Skills,
-                    CompanyId = job.CompanyId
-                }).ToList(),
-                Index = paginateResult.Index,
-                Size = paginateResult.Size,
-                TotalItems = paginateResult.TotalItems,
-                TotalPages = paginateResult.TotalPages
-            };
+                    Items = paginateResult.Items.Select(job => new JobResponseDto
+                    {
+                        Id = job.Id,
+                        Title = job.Title,
+                        TypeOfWork = job.TypeOfWork,
+                        YearsOfExperience = job.YearsOfExperience,
+                        WorkPlace = job.WorkPlace,
+                        StartDate = job.StartDate,
+                        Content = job.Content,
+                        Description = job.Description,
+                        Skills = job.Skills,
+                        CompanyId = job.CompanyId
+                    }).ToList(),
+                    Index = paginateResult.Index,
+                    Size = paginateResult.Size,
+                    TotalItems = paginateResult.TotalItems,
+                    TotalPages = paginateResult.TotalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Get list of jobs
@@ -95,129 +116,182 @@ namespace TechCareer.Service.Concretes
             bool enableTracking = true,
             CancellationToken cancellationToken = default)
         {
-            var jobs = await _jobRepository.GetListAsync(predicate, orderBy, enableTracking, withDeleted);
-
-            return jobs.Select(job => new JobResponseDto
+            try
             {
-                Id = job.Id,
-                Title = job.Title,
-                TypeOfWork = job.TypeOfWork,
-                YearsOfExperience = job.YearsOfExperience,
-                WorkPlace = job.WorkPlace,
-                StartDate = job.StartDate,
-                Content = job.Content,
-                Description = job.Description,
-                Skills = job.Skills,
-                CompanyId = job.CompanyId
-            }).ToList();
+                var jobs = await _jobRepository.GetListAsync(predicate, orderBy, enableTracking, withDeleted);
+
+                return jobs.Select(job => new JobResponseDto
+                {
+                    Id = job.Id,
+                    Title = job.Title,
+                    TypeOfWork = job.TypeOfWork,
+                    YearsOfExperience = job.YearsOfExperience,
+                    WorkPlace = job.WorkPlace,
+                    StartDate = job.StartDate,
+                    Content = job.Content,
+                    Description = job.Description,
+                    Skills = job.Skills,
+                    CompanyId = job.CompanyId
+                }).ToList();
+
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
+
         }
 
         // Add a new job
         public async Task<JobResponseDto> AddAsync(JobAddRequestDto jobAddRequestDto)
         {
-            // Yeni bir Job entity oluştur
-            var job = new Job
+            try
             {
-                Title = jobAddRequestDto.Title,
-                TypeOfWork = jobAddRequestDto.TypeOfWork,
-                YearsOfExperience = jobAddRequestDto.YearsOfExperience,
-                WorkPlace = jobAddRequestDto.WorkPlace,
-                StartDate = jobAddRequestDto.StartDate,
-                Content = jobAddRequestDto.Content,
-                Description = jobAddRequestDto.Description,
-                Skills = jobAddRequestDto.Skills,
-                CompanyId = jobAddRequestDto.CompanyId
-            };
+                // Yeni bir Job entity oluştur
+                var job = new Job
+                {
+                    Title = jobAddRequestDto.Title,
+                    TypeOfWork = jobAddRequestDto.TypeOfWork,
+                    YearsOfExperience = jobAddRequestDto.YearsOfExperience,
+                    WorkPlace = jobAddRequestDto.WorkPlace,
+                    StartDate = jobAddRequestDto.StartDate,
+                    Content = jobAddRequestDto.Content,
+                    Description = jobAddRequestDto.Description,
+                    Skills = jobAddRequestDto.Skills,
+                    CompanyId = jobAddRequestDto.CompanyId
+                };
 
-            // Veritabanına kaydet
-            var addedJob = await _jobRepository.AddAsync(job);
+                // Veritabanına kaydet
+                var addedJob = await _jobRepository.AddAsync(job);
 
-            // Cevap DTO'su oluştur ve geri döndür
-            return new JobResponseDto
+                _logger.Info("Info log: Job added.");
+
+                // Cevap DTO'su oluştur ve geri döndür
+                return new JobResponseDto
+                {
+                    Id = addedJob.Id,
+                    Title = addedJob.Title,
+                    TypeOfWork = addedJob.TypeOfWork,
+                    YearsOfExperience = addedJob.YearsOfExperience,
+                    WorkPlace = addedJob.WorkPlace,
+                    StartDate = addedJob.StartDate,
+                    Content = addedJob.Content,
+                    Description = addedJob.Description,
+                    Skills = addedJob.Skills,
+                    CompanyId = addedJob.CompanyId
+                };
+            }
+            catch (Exception ex)
             {
-                Id = addedJob.Id,
-                Title = addedJob.Title,
-                TypeOfWork = addedJob.TypeOfWork,
-                YearsOfExperience = addedJob.YearsOfExperience,
-                WorkPlace = addedJob.WorkPlace,
-                StartDate = addedJob.StartDate,
-                Content = addedJob.Content,
-                Description = addedJob.Description,
-                Skills = addedJob.Skills,
-                CompanyId = addedJob.CompanyId
-            };
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
 
         // Update an existing job
         public async Task<JobResponseDto> UpdateAsync(JobUpdateRequestDto jobUpdateRequestDto)
         {
-            var job = await _jobRepository.GetAsync(x => x.Id == jobUpdateRequestDto.Id);
-
-            if (job == null)
-                throw new ApplicationException("Job not found.");
-
-            // Update fields
-            job.Title = jobUpdateRequestDto.Title;
-            job.TypeOfWork = jobUpdateRequestDto.TypeOfWork;
-            job.YearsOfExperience = jobUpdateRequestDto.YearsOfExperience;
-            job.WorkPlace = jobUpdateRequestDto.WorkPlace;
-            job.StartDate = jobUpdateRequestDto.StartDate;
-            job.Content = jobUpdateRequestDto.Content;
-            job.Description = jobUpdateRequestDto.Description;
-            job.Skills = jobUpdateRequestDto.Skills;
-            job.CompanyId = jobUpdateRequestDto.CompanyId;
-
-            var updatedJob = await _jobRepository.UpdateAsync(job);
-
-            return new JobResponseDto
+            try
             {
-                Id = updatedJob.Id,
-                Title = updatedJob.Title,
-                TypeOfWork = updatedJob.TypeOfWork,
-                YearsOfExperience = updatedJob.YearsOfExperience,
-                WorkPlace = updatedJob.WorkPlace,
-                StartDate = updatedJob.StartDate,
-                Content = updatedJob.Content,
-                Description = updatedJob.Description,
-                Skills = updatedJob.Skills,
-                CompanyId = updatedJob.CompanyId
-            };
+                var job = await _jobRepository.GetAsync(x => x.Id == jobUpdateRequestDto.Id);
+
+                if (job == null)
+                {
+                    _logger.Warn("Warn log: Job not found.");
+                    throw new ApplicationException("Job not found.");
+                }                 
+
+                // Update fields
+                job.Title = jobUpdateRequestDto.Title;
+                job.TypeOfWork = jobUpdateRequestDto.TypeOfWork;
+                job.YearsOfExperience = jobUpdateRequestDto.YearsOfExperience;
+                job.WorkPlace = jobUpdateRequestDto.WorkPlace;
+                job.StartDate = jobUpdateRequestDto.StartDate;
+                job.Content = jobUpdateRequestDto.Content;
+                job.Description = jobUpdateRequestDto.Description;
+                job.Skills = jobUpdateRequestDto.Skills;
+                job.CompanyId = jobUpdateRequestDto.CompanyId;
+
+                var updatedJob = await _jobRepository.UpdateAsync(job);
+
+                _logger.Info("Info log: Job updated.");
+
+                return new JobResponseDto
+                {
+                    Id = updatedJob.Id,
+                    Title = updatedJob.Title,
+                    TypeOfWork = updatedJob.TypeOfWork,
+                    YearsOfExperience = updatedJob.YearsOfExperience,
+                    WorkPlace = updatedJob.WorkPlace,
+                    StartDate = updatedJob.StartDate,
+                    Content = updatedJob.Content,
+                    Description = updatedJob.Description,
+                    Skills = updatedJob.Skills,
+                    CompanyId = updatedJob.CompanyId
+                };
+            }
+            catch (Exception ex)
+            {
+
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+            
         }
 
         public async Task<JobResponseDto> DeleteAsync(JobRequestDto jobRequestDto, bool permanent = false)
         {
-            var job = await _jobRepository.GetAsync(
-                x => x.Id == jobRequestDto.Id,
-                withDeleted: true
-            );
-
-            if (job == null)
-                throw new ApplicationException("Job not found.");
-
-            if (permanent)
+            try
             {
-                await _jobRepository.DeleteAsync(job, true);
+                var job = await _jobRepository.GetAsync(
+                    x => x.Id == jobRequestDto.Id,
+                    withDeleted: true
+                );
+
+                if (job == null)
+                {
+                    _logger.Warn("Warn log: Job not found.");
+                    throw new ApplicationException("Job not found.");
+                }
+                    
+
+                if (permanent)
+                {
+                    await _jobRepository.DeleteAsync(job, true);
+                }
+                else
+                {
+                    job.IsDeleted = true;
+                    await _jobRepository.DeleteAsync(job);
+                }
+
+                _logger.Info("Info log: Job deleted.");
+
+                return new JobResponseDto
+                {
+                    Id = job.Id,
+                    Title = job.Title,
+                    TypeOfWork = job.TypeOfWork,
+                    YearsOfExperience = job.YearsOfExperience,
+                    WorkPlace = job.WorkPlace,
+                    StartDate = job.StartDate,
+                    Content = job.Content,
+                    Description = job.Description,
+                    Skills = job.Skills,
+                    CompanyId = job.CompanyId
+                };
             }
-            else
+            catch (Exception ex)
             {
-                job.IsDeleted = true;
-                await _jobRepository.DeleteAsync(job);
+
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
             }
 
-            return new JobResponseDto
-            {
-                Id = job.Id,
-                Title = job.Title,
-                TypeOfWork = job.TypeOfWork,
-                YearsOfExperience = job.YearsOfExperience,
-                WorkPlace = job.WorkPlace,
-                StartDate = job.StartDate,
-                Content = job.Content,
-                Description = job.Description,
-                Skills = job.Skills,
-                CompanyId = job.CompanyId
-            };
         }
     }
 }
