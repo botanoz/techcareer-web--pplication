@@ -1,0 +1,24 @@
+﻿
+#GetAllUserOperationClaim
+GET https://localhost:7122/api/UserOperationClaim?includeDeleted=false
+Accept: application/json
+
+###
+#PostAllUserOperationClaim
+POST https://localhost:7122/api/UserOperationClaim
+Accept: application/json,
+
+###
+#GetAllUserOperationClaim
+GET https://localhost:7122/api/UserOperationClaim/1
+Accept: application/json
+###
+#PutAllUserOperationClaim
+PUT https://localhost:7122/api/UserOperationClaim/1
+Accept: application/json
+
+###
+#GetAllUserOperationClaim
+GET https://localhost:7122/api/UserOperationClaim/paginate?pageIndex=1&pageSize=10&includeDeleted=false
+Accept: application/json
+

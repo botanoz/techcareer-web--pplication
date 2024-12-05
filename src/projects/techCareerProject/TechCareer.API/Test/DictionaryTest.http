@@ -1,0 +1,24 @@
+﻿#GetAllDictionary
+GET https://localhost:7122/api/Dictionary
+Accept: application/json
+
+###
+#PostAllDictionary
+POST https://localhost:7122/api/Dictionary
+Accept: application/json
+
+###
+#GetAllDictionary
+GET https://localhost:7122/api/Dictionary/1
+Accept: application/json
+
+###
+#PutAllDictionary
+PUT https://localhost:7122/api/Dictionary/1
+Accept: application/json
+
+###
+#DeleteAllDictionary
+DELETE https://localhost:7122/api/Dictionary/1
+Accept: application/json
+

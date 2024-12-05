@@ -1,0 +1,29 @@
+﻿
+#GetAllInstructor
+GET https://localhost:7122/api/Instructors?includeDeleted=false
+Accept: application/json
+
+###
+#PostAllInstructor
+POST https://localhost:7122/api/Instructors
+Accept: application/json
+
+###
+#GetAllInstructor
+GET https://localhost:7122/api/Instructors/11111111-1111-1111-1111-111111111111
+Accept: application/json
+
+###
+#PutAllInstructor
+PUT https://localhost:7122/api/Instructors/11111111-1111-1111-1111-111111111111
+Accept: application/json
+
+###
+#DeleteAllInstructor
+DELETE https://localhost:7122/api/Instructors/11111111-1111-1111-1111-111111111111?permanent=false
+Accept: application/json
+###
+#GetAllInstructor
+GET https://localhost:7122/api/Instructors/paginate?pageIndex=1&pageSize=10&includeDeleted=false
+Accept: application/json
+

@@ -1,0 +1,9 @@
+﻿
+#PostAllAuth
+POST https://localhost:7122/api/Category
+Accept: application/json
+
+###
+#GetAllAuth
+GET https://localhost:7122/api/Auth/getallpaginate?index=1&size=10
+Accept: application/json

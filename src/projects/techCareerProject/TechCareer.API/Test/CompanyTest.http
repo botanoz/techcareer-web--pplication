@@ -1,0 +1,26 @@
+﻿
+#GetAllCompany
+GET https://localhost:7122/api/Company
+Accept: application/json
+
+###
+#PostAllCompany
+POST https://localhost:7122/api/Company
+Accept: application/json
+
+###
+#GetAllCompany
+GET https://localhost:7122/api/Company/1
+Accept: application/json
+
+###
+#PutAllCompany
+PUT https://localhost:7122/api/Company/1
+Accept: application/json
+
+###
+#DeleteAllCompany
+DELETE https://localhost:7122/api/Company/1
+Accept: application/json
+
+

@@ -1,0 +1,27 @@
+﻿
+#GetAllUser
+GET  https://localhost:7122/api/User?includeDeleted=false
+Accept: application/json
+
+###
+#PostAllUser
+POST https://localhost:7122/api/User
+Accept: application/json,
+
+###
+#GetAllUser
+GET https://localhost:7122/api/User/1
+Accept: application/json
+###
+#PutAllUser
+PUT https://localhost:7122/api/User/1
+Accept: application/json
+
+###
+#DeleteAllUser
+DELETE https://localhost:7122/api/User/1?permanent=false
+Accept: application/json
+###
+#GetAllUser
+GET https://localhost:7122/api/User/paginate?pageIndex=1&pageSize=10&includeDeleted=false
+Accept: application/json

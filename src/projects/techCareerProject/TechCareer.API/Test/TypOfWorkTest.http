@@ -1,0 +1,25 @@
+﻿
+#GetAllTypOfWork
+GET  https://localhost:7122/api/TypOfWork
+Accept: application/json
+
+###
+#PostAllTypOfWork
+POST https://localhost:7122/api/TypOfWork
+Accept: application/json
+
+###
+#GetAllTypOfWork
+GET https://localhost:7122/api/TypOfWork/1
+Accept: application/json
+
+###
+#PutAllTypOfWork
+PUT https://localhost:7122/api/TypOfWork/1
+Accept: application/json
+
+###
+#DeleteAllTypOfWork
+DELETE https://localhost:7122/api/TypOfWork/1
+Accept: application/json
+
