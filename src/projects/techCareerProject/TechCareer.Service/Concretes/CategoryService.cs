@@ -1,12 +1,9 @@
 ﻿using Core.Persistence.Extensions;
 using Core.Security.Entities;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TechCareer.DataAccess.Repositories.Abstracts;
@@ -16,10 +13,8 @@ using TechCareer.Service.Rules;
 
 namespace TechCareer.Service.Concretes
 {
-
     public sealed class CategoryService : ICategoryService
     {
-
         private readonly ICategoryRepository _categoryRepository;
         private readonly CategoryBusinessRules _categoryBusinessRules;
 
@@ -29,160 +24,160 @@ namespace TechCareer.Service.Concretes
             _categoryBusinessRules = categoryBusinessRules;
         }
 
-        public async Task<List<Category>> GetListAsync(Expression<Func<Category, bool>>? predicate = null, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
+        // Add a new category
+        public async Task<CategoryResponseDto> AddAsync(CategoryAddRequestDto categoryAddRequestDto)
         {
-            try
+            Category c = new Category(categoryAddRequestDto.Name);
+            // Check business rules
+            await _categoryBusinessRules.CategoryShouldBeExistsWhenSelected(c);
+
+            // Create and save the category
+            var category = new Category(categoryAddRequestDto.Name);
+            var addedCategory = await _categoryRepository.AddAsync(category);
+
+            // Return response DTO
+            return new CategoryResponseDto
             {
-                List<Category> list = await _categoryRepository.GetListAsync();
-                return list;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
-                throw new ApplicationException("Kategori listesi getirilemedi.", ex);
-            }
+                Id = addedCategory.Id,
+                Name = addedCategory.Name
+            };
         }
 
-        public async Task<Category> AddAsync(CategoryAddRequestDto categoryAddRequestDto)
+        // Delete a category
+        public async Task<CategoryResponseDto> DeleteAsync(CategoryRequestDto categoryRequestDto, bool permanent = false)
         {
-            try
+            var category = await _categoryRepository.GetAsync(x => x.Id == categoryRequestDto.Id, withDeleted: true);
+
+            if (category == null)
+                throw new ApplicationException("Category not found.");
+
+            if (permanent)
             {
-                Category category = new Category(categoryAddRequestDto.Name);
-
-                Category addedCategory = await _categoryRepository.AddAsync(category);
-
-                return addedCategory;
+                await _categoryRepository.DeleteAsync(category, true);
             }
-            catch (Exception ex)
+            else
             {
-                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
-                throw new ApplicationException("Kategori eklenemedi.", ex);
+                category.IsDeleted = true;
+                await _categoryRepository.UpdateAsync(category);
             }
 
+            return new CategoryResponseDto
+            {
+                Id = category.Id,
+                Name = category.Name
+            };
         }
 
-        public async Task<Category> DeleteAsync(Category category, bool permanent = false)
+        // Find a category by ID
+        public async Task<CategoryResponseDto> FindCategoryAsync(CategoryRequestDto categoryRequestDto)
         {
-            try
-            {
-                var selectedCategory = (await GetListAsync(x => x.Id == category.Id)).FirstOrDefault();
+            var category = await _categoryRepository.GetAsync(x => x.Id == categoryRequestDto.Id);
 
-                selectedCategory.IsDeleted = true;
+            if (category == null)
+                throw new ApplicationException("Category not found.");
 
-                return selectedCategory;
-            }
-            catch (Exception ex)
+            return new CategoryResponseDto
             {
-                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
-                throw new ApplicationException("Kategori silinemedi.", ex);
-            }
+                Id = category.Id,
+                Name = category.Name
+            };
         }
 
-        public async Task<Category?> GetAsync(Expression<Func<Category, bool>> predicate, Category category, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
+        // Get a single category with optional filters
+        public async Task<CategoryResponseDto?> GetAsync(Expression<Func<Category, bool>> predicate, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var selectedCategory = (await _categoryRepository.GetListAsync(x => x.Id == category.Id)).FirstOrDefault();
+            var category = await _categoryRepository.GetAsync(predicate, withDeleted: true);
 
-                return selectedCategory;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
-                throw new ApplicationException("Kategori getirilemedi.", ex);
-            }
+            if (category == null)
+                return null;
 
+            return new CategoryResponseDto
+            {
+                Id = category.Id,
+                Name = category.Name
+            };
         }
 
-        public async Task<Paginate<Category?>> GetPaginateAsync(
-                          Expression<Func<Category, bool>>? predicate = null,
-                          bool include = false,
-                          int index = 0,
-                          int size = 10,
-                          bool withDeleted = false,
-                          bool enableTracking = true,
-                          CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                IQueryable<Category> query = (IQueryable<Category>)_categoryRepository.GetListAsync();
-
-                if (!withDeleted)
-                    query = query.Where(c => !c.IsDeleted);
-                if (predicate != null)
-                    query = query.Where(predicate);
-                if (!enableTracking)
-                    query = query.AsNoTracking();
-
-
-                int totalItems = await query.CountAsync(cancellationToken);
-                List<Category> items = await query
-                    .Skip(index * size)
-                    .Take(size)
-                    .ToListAsync(cancellationToken);
-
-                return new Paginate<Category?>
-                {
-                    Items = items,
-                    Index = index,
-                    Size = size,
-                    TotalItems = totalItems,
-                    TotalPages = (int)Math.Ceiling(totalItems / (double)size)
-                };
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
-                throw new ApplicationException(ex.Message, ex);
-            }
-        }
-
-        public async Task<Category> UpdateAsync(CategoryUpdateRequestDto categoryUpdateRequestDto)
-        {
-            try
-            {
-                var updatedCategory = await _categoryRepository.GetAsync(x => x.Id == categoryUpdateRequestDto.Id);
-                if (updatedCategory != null)
-                {
-                    updatedCategory.Name = categoryUpdateRequestDto.Name;
-                    _categoryRepository.UpdateAsync(updatedCategory);
-                    return updatedCategory;
-                }
-                else
-                {
-                    return NullReferenceException("Aradığınız kategori bulunamamıştır.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
-                throw new ApplicationException(ex.Message, ex);
-            }
-        }
-
-        public async Task<Category> FindCategoryAsync(Category category)
-        {
-            try
-            {
-                if (category != null)
-                {
-                    var deletedCategory = (await GetListAsync(x => x.Id == category.Id)).FirstOrDefault();
-                    return deletedCategory;
-                }
-                else
-                {
-                    return NullReferenceException("Aradığınız kategori bulunamamıştır.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
-                throw new ApplicationException(ex.Message, ex);
-            }
-        }
-        private Category NullReferenceException(string v)
+        public Task<CategoryResponseDto?> GetAsync(Expression<Func<Category, bool>> predicate, CategoryRequestDto categoryRequestDto, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
+        }
+
+        // Get all categories with optional filters
+        public async Task<List<CategoryResponseDto>> GetListAsync(
+     Expression<Func<Category, bool>>? predicate = null,
+     bool include = false,
+     bool withDeleted = false,
+     bool enableTracking = true,
+     CancellationToken cancellationToken = default)
+        {
+            // Repository'den tüm kategoriler alınıyor
+            var categories = await _categoryRepository.GetListAsync(
+                predicate,
+                enableTracking: enableTracking,
+                withDeleted: true); // Her zaman tüm kayıtları getir (silinmiş dahil)
+
+            // Silinmiş kayıtlara göre filtreleme
+            var filteredCategories = withDeleted
+                ? categories // Silinmiş ve silinmemiş tüm kategoriler
+                : categories.Where(category => !category.IsDeleted).ToList(); // Sadece silinmemiş kategoriler
+
+            // DTO'ya dönüştürme
+            return filteredCategories.Select(category => new CategoryResponseDto
+            {
+                Id = category.Id,
+                Name = category.Name
+            }).ToList();
+        }
+
+
+        // Get paginated list of categories
+        public async Task<Paginate<CategoryResponseDto>> GetPaginateAsync(
+            Expression<Func<Category, bool>>? predicate = null,
+            int index = 0,
+            int size = 10,
+            bool withDeleted = false,
+            bool enableTracking = true,
+            CancellationToken cancellationToken = default)
+        {
+            var paginateResult = await _categoryRepository.GetPaginateAsync(predicate, index: index, size: size, enableTracking: enableTracking, withDeleted: withDeleted);
+
+            return new Paginate<CategoryResponseDto>
+            {
+                Items = paginateResult.Items.Select(category => new CategoryResponseDto
+                {
+                    Id = category.Id,
+                    Name = category.Name
+                }).ToList(),
+                Index = paginateResult.Index,
+                Size = paginateResult.Size,
+                TotalItems = paginateResult.TotalItems,
+                TotalPages = paginateResult.TotalPages
+            };
+        }
+
+        public Task<Paginate<CategoryResponseDto?>> GetPaginateAsync(Expression<Func<Category, bool>>? predicate = null, bool include = false, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cansellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        // Update a category
+        public async Task<CategoryResponseDto> UpdateAsync(CategoryUpdateRequestDto categoryUpdateRequestDto)
+        {
+            var category = await _categoryRepository.GetAsync(x => x.Id == categoryUpdateRequestDto.Id);
+
+            if (category == null)
+                throw new ApplicationException("Category not found.");
+
+            // Update fields
+            category.Name = categoryUpdateRequestDto.Name;
+            await _categoryRepository.UpdateAsync(category);
+
+            return new CategoryResponseDto
+            {
+                Id = category.Id,
+                Name = category.Name
+            };
         }
     }
 }
