@@ -1,6 +1,6 @@
 ﻿
 #GetAllYearsOfExperience
-GET  https://localhost:7122/api/Category?includeDeleted=false
+GET https://localhost:7122/api/YearsOfExperience
 Accept: application/json
 
 ###

@@ -8,7 +8,6 @@ using TechCareer.Service.Concretes;
 using Core.Security.Entities;
 using System.Collections.Generic;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
 using TechCareer.Models.Dtos.OperationClaim;
 using TechCareer.DataAccess.Repositories.Abstracts;
 
@@ -34,10 +33,10 @@ namespace TechCareer.Service.Tests.UnitTests
                                          .ReturnsAsync(operationClaim);
 
             // Act
-            var result = await _operationClaimService.AddAsync(operationClaim);
+            var result = await _operationClaimService.AddAsync(new OperationClaimAddRequestDto { Name = "Admin" });
 
             // Assert
-            result.Should().BeEquivalentTo(operationClaim);
+            result.Should().BeEquivalentTo(new OperationClaimResponseDto { Id = 1, Name = "Admin" });
             _mockOperationClaimRepository.Verify(repo => repo.AddAsync(It.IsAny<OperationClaim>()), Times.Once);
         }
 
@@ -46,19 +45,18 @@ namespace TechCareer.Service.Tests.UnitTests
         {
             // Arrange
             var operationClaims = new List<OperationClaim>
-    {
-        new OperationClaim { Id = 1, Name = "Admin" },
-        new OperationClaim { Id = 2, Name = "User" }
-    };
+            {
+                new OperationClaim { Id = 1, Name = "Admin" },
+                new OperationClaim { Id = 2, Name = "User" }
+            };
 
-            // Setup GetListAsync to return the operation claims list, matching the method signature with default parameters
             _mockOperationClaimRepository.Setup(repo => repo.GetListAsync(
-                    It.IsAny<Expression<Func<OperationClaim, bool>>>(),  // Allow any predicate (filter)
-                    null,                                                 // No ordering (orderBy is null)
-                    true,                                                 // Include related data (default is true)
-                    false,                                                // withDeleted is false by default
-                    true,                                                 // Enable tracking (default is true)
-                    It.IsAny<CancellationToken>()                         // CancellationToken (default)
+                    It.IsAny<Expression<Func<OperationClaim, bool>>>(),
+                    null,
+                    true,
+                    false,
+                    true,
+                    It.IsAny<CancellationToken>()
                 ))
                 .ReturnsAsync(operationClaims);
 
@@ -66,14 +64,14 @@ namespace TechCareer.Service.Tests.UnitTests
             var result = await _operationClaimService.GetListAsync();
 
             // Assert
-            result.Should().BeEquivalentTo(operationClaims);  // Assert that the result matches the expected list
+            result.Should().BeEquivalentTo(operationClaims.Select(c => new OperationClaimResponseDto { Id = c.Id, Name = c.Name }).ToList());
             _mockOperationClaimRepository.Verify(repo => repo.GetListAsync(
                 It.IsAny<Expression<Func<OperationClaim, bool>>>(),
                 null,
                 true,
                 false,
                 true,
-                It.IsAny<CancellationToken>()), Times.Once);  // Ensure GetListAsync was called once with the expected parameters
+                It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -82,31 +80,30 @@ namespace TechCareer.Service.Tests.UnitTests
             // Arrange
             var operationClaim = new OperationClaim { Id = 1, Name = "Admin", IsDeleted = false };
 
-            // Setup for GetAsync: Returns the operation claim based on the predicate (with tracking)
             _mockOperationClaimRepository.Setup(repo => repo.GetAsync(
-                    It.IsAny<Expression<Func<OperationClaim, bool>>>(),  // Any predicate
-                    true,                                                 // Include (true by default)
-                    false,                                                // withDeleted (false by default)
-                    true,                                                 // EnableTracking (true by default)
-                    It.IsAny<CancellationToken>()                         // CancellationToken (default)
+                    It.IsAny<Expression<Func<OperationClaim, bool>>>(),
+                    true,
+                    false,
+                    true,
+                    It.IsAny<CancellationToken>()
                 ))
                 .ReturnsAsync(operationClaim);
 
-            var deleteRequestDto = new OperationClaimDeleteRequestDto { Id = 1, Permanent = false };
+            var deleteRequestDto = new OperationClaimRequestDto { Id = 1 };
 
-            // Setup for UpdateAsync: Should update the IsDeleted flag when called
             _mockOperationClaimRepository.Setup(repo => repo.UpdateAsync(It.IsAny<OperationClaim>()))
-                                          .ReturnsAsync(operationClaim);  // Return the updated claim
+                                          .ReturnsAsync(operationClaim);
 
             // Act
             var result = await _operationClaimService.DeleteAsync(deleteRequestDto);
 
             // Assert
-            result.IsDeleted.Should().BeTrue();  // Assert that IsDeleted is marked as true
+            result.Name.Should().Be(operationClaim.Name);  // Name'ı doğrulama
             _mockOperationClaimRepository.Verify(repo => repo.GetAsync(It.IsAny<Expression<Func<OperationClaim, bool>>>(),
-                                                                         true, false, true, It.IsAny<CancellationToken>()), Times.Once);  // Verify GetAsync was called once
-            _mockOperationClaimRepository.Verify(repo => repo.UpdateAsync(It.IsAny<OperationClaim>()), Times.Once);  // Verify UpdateAsync was called once to update IsDeleted
+                                                                         true, false, true, It.IsAny<CancellationToken>()), Times.Once);
+            _mockOperationClaimRepository.Verify(repo => repo.UpdateAsync(It.IsAny<OperationClaim>()), Times.Once);
         }
+
 
         [Fact]
         public async Task GetAsync_ShouldReturnOperationClaimById()
@@ -114,13 +111,12 @@ namespace TechCareer.Service.Tests.UnitTests
             // Arrange
             var operationClaim = new OperationClaim { Id = 1, Name = "Admin" };
 
-            // Explicitly pass the optional arguments
             _mockOperationClaimRepository.Setup(repo => repo.GetAsync(
-                    It.IsAny<Expression<Func<OperationClaim, bool>>>(),  
-                    true,                                               
-                    false,                                            
-                    true,                                                
-                    It.IsAny<CancellationToken>()                         
+                    It.IsAny<Expression<Func<OperationClaim, bool>>>(),
+                    true,
+                    false,
+                    true,
+                    It.IsAny<CancellationToken>()
                 ))
                 .ReturnsAsync(operationClaim);
 
@@ -128,7 +124,7 @@ namespace TechCareer.Service.Tests.UnitTests
             var result = await _operationClaimService.GetAsync(x => x.Id == 1);
 
             // Assert
-            result.Should().BeEquivalentTo(operationClaim);
+            result.Should().BeEquivalentTo(new OperationClaimResponseDto { Id = 1, Name = "Admin" });
             _mockOperationClaimRepository.Verify(repo => repo.GetAsync(
                     It.IsAny<Expression<Func<OperationClaim, bool>>>(),
                     true,
@@ -137,7 +133,6 @@ namespace TechCareer.Service.Tests.UnitTests
                     It.IsAny<CancellationToken>()), Times.Once);
         }
 
-
         [Fact]
         public async Task UpdateAsync_ShouldReturnUpdatedOperationClaim()
         {
@@ -145,17 +140,15 @@ namespace TechCareer.Service.Tests.UnitTests
             var updateRequestDto = new OperationClaimUpdateRequestDto { Id = 1, Name = "UpdatedAdmin" };
             var existingClaim = new OperationClaim { Id = 1, Name = "Admin" };
 
-            // Set up GetAsync to return the existing claim
             _mockOperationClaimRepository.Setup(repo => repo.GetAsync(
-                    It.IsAny<Expression<Func<OperationClaim, bool>>>(),  
-                    true,                                               
-                    false,                                               
-                    true,                                               
-                    It.IsAny<CancellationToken>()                         
+                    It.IsAny<Expression<Func<OperationClaim, bool>>>(),
+                    true,
+                    false,
+                    true,
+                    It.IsAny<CancellationToken>()
                 ))
                 .ReturnsAsync(existingClaim);
 
-            // Set up UpdateAsync to return the updated claim
             _mockOperationClaimRepository.Setup(repo => repo.UpdateAsync(It.IsAny<OperationClaim>()))
                                           .ReturnsAsync(existingClaim);
 
@@ -163,8 +156,8 @@ namespace TechCareer.Service.Tests.UnitTests
             var result = await _operationClaimService.UpdateAsync(updateRequestDto);
 
             // Assert
-            result.Name.Should().Be(updateRequestDto.Name);  // Ensure the name is updated
-            _mockOperationClaimRepository.Verify(repo => repo.UpdateAsync(It.IsAny<OperationClaim>()), Times.Once); 
+            result.Name.Should().Be("UpdatedAdmin");
+            _mockOperationClaimRepository.Verify(repo => repo.UpdateAsync(It.IsAny<OperationClaim>()), Times.Once);
         }
 
         [Fact]
@@ -172,19 +165,18 @@ namespace TechCareer.Service.Tests.UnitTests
         {
             // Arrange
             var operationClaims = new List<OperationClaim>
-    {
-        new OperationClaim { Id = 1, Name = "Admin" },
-        new OperationClaim { Id = 2, Name = "User" }
-    };
+            {
+                new OperationClaim { Id = 1, Name = "Admin" },
+                new OperationClaim { Id = 2, Name = "User" }
+            };
 
-            // Set up GetListAsync to return a list of operation claims
             _mockOperationClaimRepository.Setup(repo => repo.GetListAsync(
-                    It.IsAny<Expression<Func<OperationClaim, bool>>>(),  // predicate (allow any filter)
-                    null,                                                 // orderBy (no ordering)
-                    true,                                                 // include (default: true)
-                    false,                                                // withDeleted (default: false)
-                    true,                                              
-                    It.IsAny<CancellationToken>()                       
+                    It.IsAny<Expression<Func<OperationClaim, bool>>>(),
+                    null,
+                    true,
+                    false,
+                    true,
+                    It.IsAny<CancellationToken>()
                 ))
                 .ReturnsAsync(operationClaims);
 
@@ -192,10 +184,9 @@ namespace TechCareer.Service.Tests.UnitTests
             var result = await _operationClaimService.GetPaginateAsync(index: 0, size: 2);
 
             // Assert
-            result.Items.Should().BeEquivalentTo(operationClaims);  
-            result.TotalItems.Should().Be(2);  
-            result.TotalPages.Should().Be(1);  
+            result.Items.Should().BeEquivalentTo(operationClaims.Select(c => new OperationClaimResponseDto { Id = c.Id, Name = c.Name }).ToList());
+            result.TotalItems.Should().Be(2);
+            result.TotalPages.Should().Be(1);
         }
-
     }
 }

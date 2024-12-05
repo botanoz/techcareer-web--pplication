@@ -1,29 +1,30 @@
 ﻿
 #GetAllJob
-GET  
+GET  https://localhost:7122/api/Job?includeDeleted=false
 Accept: application/json
 
 ###
 #PostAllJob
-POST 
+POST https://localhost:7122/api/Job
+Accept: application/json
+
+###
+#GetAllJob
+GET https://localhost:7122/api/Job/1
 Accept: application/json
 
 ###
 #PutAllJob
-PUT 
-Accept: application/json
 
-###
-#GetAllJob
-GET 
+PUT https://localhost:7122/api/Job/1
 Accept: application/json
 
 ###
 #DeleteAllJob
-DELETE 
+DELETE https://localhost:7122/api/Job/1
 Accept: application/json
 ###
 #GetAllJob
-GET 
+GET https://localhost:7122/api/Job/paginate?pageIndex=1&pageSize=10&includeDeleted=false
 Accept: application/json
 

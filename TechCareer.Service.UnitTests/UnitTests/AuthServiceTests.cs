@@ -18,12 +18,13 @@ using System.Linq.Expressions;
 
 namespace TechCareer.Service.Tests.UnitTests
 {
+
     public class AuthServiceTests
     {
         private readonly Mock<IUserService> _userServiceMock;
         private readonly Mock<IUserWithTokenService> _tokenServiceMock;
+        private readonly Mock<IUserBusinessRules> _rulesMock;
         private readonly Mock<IMapper> _mapperMock;
-        private readonly Mock<UserBusinessRules> _rulesMock;
         private readonly AuthService _authService;
 
         public AuthServiceTests()
@@ -31,14 +32,14 @@ namespace TechCareer.Service.Tests.UnitTests
             _userServiceMock = new Mock<IUserService>();
             _tokenServiceMock = new Mock<IUserWithTokenService>();
             _mapperMock = new Mock<IMapper>();
-            _rulesMock = new Mock<UserBusinessRules>();
+            _rulesMock = new Mock<IUserBusinessRules>();  // Yeni mock nesnesi
 
             _authService = new AuthService(
-                _rulesMock.Object,
+                _rulesMock.Object,            // Güncellendi
                 _tokenServiceMock.Object,
                 _userServiceMock.Object,
                 _mapperMock.Object
-            );
+                    );
         }
 
         [Fact]

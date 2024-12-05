@@ -30,40 +30,79 @@ namespace TechCareer.Service.Tests.UnitTests
         }
 
         [Fact]
-        public async Task AddAsync_ShouldReturnAddedInstructor()
+        public async Task AddAsync_ShouldReturnAddedInstructor_WhenGivenValidDto()
         {
+            // Arrange: Test için kullanılacak DTO'yu hazırlıyoruz
+            var instructorDto = new InstructorAddRequestDto
+            {
+                Name = "Test Instructor",
+                About = "This is a test instructor."
+            };
 
-            var instructor = new Instructor { Id = Guid.NewGuid(), Name = "Test Instructor" };
+            // AddAsync metodu çağrıldığında yeni bir Instructor döndürmesini sağlıyoruz
+            var instructor = new Instructor
+            {
+                Id = Guid.NewGuid(),
+                Name = instructorDto.Name,
+                About = instructorDto.About
+            };
+
             _mockInstructorRepository.Setup(service => service.AddAsync(It.IsAny<Instructor>()))
                 .ReturnsAsync(instructor);
 
+            // Act: AddAsync metodunu çağırıyoruz
+            var result = await _instructorService.AddAsync(instructorDto);
 
-            var result = await _instructorService.AddAsync(instructor);
+            // Assert: Sonuçları doğruluyoruz
+            Assert.NotNull(result);  // Sonucun null olmadığını kontrol ediyoruz
+            Assert.Equal(instructor.Id, result.Id);  // Dönen Instructor'Id'sinin doğru olduğunu kontrol ediyoruz
+            Assert.Equal(instructor.Name, result.Name);  // Dönen Instructor'Name'inin doğru olduğunu kontrol ediyoruz
+            Assert.Equal(instructor.About, result.About);  // Dönen Instructor'About'un doğru olduğunu kontrol ediyoruz
 
-
-            Assert.NotNull(result);
-            Assert.Equal(instructor.Id, result.Id);
-            Assert.Equal(instructor.Name, result.Name);
+            // Verify: AddAsync metodunun bir kez çağrıldığını kontrol ediyoruz
             _mockInstructorRepository.Verify(service => service.AddAsync(It.IsAny<Instructor>()), Times.Once);
         }
 
         [Fact]
-        public async Task DeleteAsync_ShouldMarkInstructorAsDeleted()
+        public async Task DeleteAsync_ShouldMarkInstructorAsDeleted_WhenPermanentIsFalse()
         {
-            var instructor = new Instructor { Id = Guid.NewGuid(), IsDeleted = false };
-            var deleteRequestDto = new InstructorDeleteRequestDto { Id = instructor.Id, Permanent = false };
+            // Arrange
+            var instructor = new Instructor
+            {
+                Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), // Geçerli bir GUID kullanıyoruz
+                IsDeleted = false
+            };
 
-            _mockInstructorRepository.Setup(service => service.GetAsync(It.IsAny<Expression<Func<Instructor, bool>>>(), false, false, true, default))
-                .ReturnsAsync(instructor);
+            var instructorRequestDto = new InstructorRequestDto
+            {
+                Id = instructor.Id
+            };
 
-            _mockInstructorRepository.Setup(service => service.UpdateAsync(It.IsAny<Instructor>()))
+            // GetAsync mock setup: Predicate'ı doğrudan ID ile eşleştiriyoruz.
+            _mockInstructorRepository.Setup(service => service.GetAsync(
+                It.Is<Expression<Func<Instructor, bool>>>(predicate => predicate.Compile().Invoke(instructor)),
+                false,
+                false,
+                true,
+                default
+            ))
+            .ReturnsAsync(instructor);
+
+            // UpdateAsync mock setup: IsDeleted flag'ını doğru şekilde güncelliyoruz.
+            _mockInstructorRepository.Setup(service => service.UpdateAsync(It.Is<Instructor>(i => i.Id == instructor.Id && i.IsDeleted == true)))
                 .ReturnsAsync(new Instructor { Id = instructor.Id, IsDeleted = true });
 
-            var result = await _instructorService.DeleteAsync(deleteRequestDto);
+            // Act: DeleteAsync metodunu çağırıyoruz
+            var result = await _instructorService.DeleteAsync(instructorRequestDto, permanent: false);
 
+            // Assert: Sonuçları doğruluyoruz
             Assert.NotNull(result);
-            Assert.True(result.IsDeleted); 
 
+            // Result'un IsDeleted flag'ını kontrol etmiyoruz, çünkü InstructorResponseDto'da böyle bir alan yok.
+            // Bunun yerine, UpdateAsync'in doğru şekilde çağrıldığını kontrol ediyoruz.
+            _mockInstructorRepository.Verify(service => service.UpdateAsync(It.Is<Instructor>(i => i.IsDeleted == true)), Times.Once);
+
+            // GetAsync ve UpdateAsync metodlarının doğru çağrıldığını kontrol ediyoruz
             _mockInstructorRepository.Verify(service => service.GetAsync(It.IsAny<Expression<Func<Instructor, bool>>>(), false, false, true, default), Times.Once);
             _mockInstructorRepository.Verify(service => service.UpdateAsync(It.IsAny<Instructor>()), Times.Once);
         }
