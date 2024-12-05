@@ -21,23 +21,43 @@ namespace TechCareer.API.Controllers
         public async Task<IActionResult> GetAllCompanies()
         {
             var companies = await _companyRepository.GetListAsync();
+
             if (companies == null || companies.Count == 0)
             {
                 return NotFound("No companies found.");
             }
-            return Ok(companies);
+
+            var companyDtos = companies.Select(company => new CompanyResponseDto
+            {
+                Name = company.Name,
+                Location = company.Location,
+                Description = company.Description
+            }).ToList();
+
+            return Ok(companyDtos);
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCompany(int id)
         {
             var company = await _companyRepository.GetAsync(c => c.Id == id);
+
             if (company == null)
             {
                 return NotFound($"Company with id {id} not found.");
             }
-            return Ok(company);
+
+            var companyDto = new CompanyResponseDto
+            {
+                Name = company.Name,
+                Location = company.Location,
+                Description = company.Description
+            };
+
+            return Ok(companyDto);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> CreateCompany([FromBody] CompanyAddRequestDto companyAddRequestDto)
@@ -94,8 +114,21 @@ namespace TechCareer.API.Controllers
                 return NotFound($"Company with id {id} not found.");
             }
 
+            var companyDto = new CompanyResponseDto
+            {
+                Name = company.Name,
+                Location = company.Location,
+                Description = company.Description
+            };
+
             await _companyRepository.DeleteAsync(company);
-            return NoContent();
+
+            return Ok(new
+            {
+                Message = "Company has been deleted successfully.",
+                DeletedCompany = companyDto
+            });
         }
+
     }
 }

@@ -4,6 +4,7 @@ using TechCareer.Service.Abstracts;
 using TechCareer.Service.Concretes;
 using Core.Security.Entities;
 using TechCareer.Models.Dtos.Event;
+using TechCareer.Models.Dtos.Category;
 
 namespace TechCareer.API.Controllers
 {
@@ -21,23 +22,23 @@ namespace TechCareer.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] bool includeDeleted = false)
         {
-            var events = await _eventService.GetListAsync(
-                withDeleted: includeDeleted);
+            var events = await _eventService.GetListAsync(withDeleted: includeDeleted);
             return Ok(events);
         }
 
-     
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var Event = await _eventService.GetAsync(x => x.Id == id);
-            if (Event == null)
-                return NotFound(new { Message = "event not found." });
+            var eventDto = await _eventService.FindEventAsync(new EventRequestDto { Id = id });
 
-            return Ok(Event);
+            if (eventDto == null)
+                return NotFound(new { Message = "Event not found." });
+
+            return Ok(eventDto);
         }
 
-  
+
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] EventAddRequestDto eventAddRequestDto)
         {
@@ -61,29 +62,33 @@ namespace TechCareer.API.Controllers
                 var UpdatedEvent = await _eventService.UpdateAsync(eventUpdateRequestDto);
                 return Ok(UpdatedEvent);
             }
-            catch (KeyNotFoundException)
+            catch (ApplicationException ex)
             {
-                return NotFound(new { Message = "Event not found." });
+                return NotFound(new { Message = ex.Message });
             }
         }
 
-   
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id, [FromQuery] bool permanent = false)
         {
             try
             {
-                var Event = new Event { Id = id };
-                var deletedEvent = await _eventService.DeleteAsync(Event, permanent);
+                // _eventService.DeleteAsync kullanıyoruz, çünkü etkinlik işlemi yapıyoruz
+                var deletedEvent = await _eventService.DeleteAsync(
+                    new EventRequestDto { Id = id }, permanent);
+
                 return Ok(deletedEvent);
             }
-            catch (KeyNotFoundException)
+            catch (ApplicationException ex)
             {
-                return NotFound(new { Message = "event not found." });
+                // Hata durumunda NotFound dönüyoruz
+                return NotFound(new { Message = ex.Message });
             }
         }
 
-   
+
+
         [HttpGet("paginate")]
         public async Task<IActionResult> GetPaginated(
             [FromQuery] int pageIndex = 0,
