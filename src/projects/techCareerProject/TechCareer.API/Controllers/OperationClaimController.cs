@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using TechCareer.Service.Abstracts;
 using TechCareer.Service.Concretes;
 using Core.Security.Entities;
+using TechCareer.Models.Dtos.OperationClaim;
 
 namespace TechCareer.API.Controllers
 {
@@ -39,50 +40,80 @@ namespace TechCareer.API.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] OperationClaim OperationClaim)
+        public async Task<IActionResult> AddOperationClaim([FromBody] OperationClaimAddRequestDto requestDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var addedOperationClaim = await _OperationClaimService.AddAsync(OperationClaim);
-            return CreatedAtAction(nameof(GetById), new { id = addedOperationClaim.Id }, addedOperationClaim);
+            try
+            {
+                var operationClaim = new OperationClaim
+                {
+                    Name = requestDto.Name
+                };
+
+                var addedClaim = await _OperationClaimService.AddAsync(operationClaim);
+                return CreatedAtAction(nameof(GetById), new { id = addedClaim.Id }, addedClaim);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while adding the operation claim.", Details = ex.Message });
+            }
         }
 
 
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] OperationClaim OperationClaim)
+        public async Task<IActionResult> Update(int id, [FromBody] OperationClaimUpdateRequestDto operationClaimUpdateRequestDto)
         {
-            if (id != OperationClaim.Id)
-                return BadRequest(new { Message = "OperationClaim ID mismatch." });
+            if (id != operationClaimUpdateRequestDto.Id)
+                return BadRequest(new { Message = "Operation claim ID mismatch." });
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-                var updatedOperationClaim = await _OperationClaimService.UpdateAsync(OperationClaim);
-                return Ok(updatedOperationClaim);
+                var updatedClaim = await _OperationClaimService.UpdateAsync(operationClaimUpdateRequestDto);
+
+                return Ok(updatedClaim);
             }
             catch (KeyNotFoundException)
             {
-                return NotFound(new { Message = "OperationClaim not found." });
+                return NotFound(new { Message = "Operation claim not found." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while updating the operation claim.", Details = ex.Message });
             }
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id, [FromQuery] bool permanent = false)
         {
             try
             {
-                var OperationClaim = new OperationClaim { Id = id };
-                var deletedOperationClaim = await _OperationClaimService.DeleteAsync(OperationClaim, permanent);
-                return Ok(deletedOperationClaim);
+                var deleteRequestDto = new OperationClaimDeleteRequestDto
+                {
+                    Id = id,
+                    Permanent = permanent
+                };
+
+                var deletedClaim = await _OperationClaimService.DeleteAsync(deleteRequestDto);
+
+                return Ok(deletedClaim);
             }
             catch (KeyNotFoundException)
             {
-                return NotFound(new { Message = "OperationClaim not found." });
+                return NotFound(new { Message = "Operation claim not found." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while deleting the operation claim.", Details = ex.Message });
             }
         }
+
 
 
         [HttpGet("paginate")]

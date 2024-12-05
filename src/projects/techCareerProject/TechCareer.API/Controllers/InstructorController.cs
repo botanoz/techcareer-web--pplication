@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using TechCareer.Service.Abstracts;
 using TechCareer.Service.Concretes;
 using Core.Security.Entities;
+using TechCareer.Models.Dtos.Instructor;
 
 namespace TechCareer.API.Controllers
 {
@@ -39,28 +40,43 @@ namespace TechCareer.API.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] Instructor instructor)
+        public async Task<IActionResult> Add([FromBody] InstructorAddRequestDto instructorAddRequestDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            var instructor = new Instructor
+            {
+                Name = instructorAddRequestDto.Name,
+                About = instructorAddRequestDto.About,
+
+            };
 
             var addedInstructor = await _instructorService.AddAsync(instructor);
             return CreatedAtAction(nameof(GetById), new { id = addedInstructor.Id }, addedInstructor);
         }
 
 
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] Instructor instructor)
+        public async Task<IActionResult> Update(Guid id, [FromBody] InstructorUpdateRequestDto instructorUpdateRequestDto)
         {
-            if (id != instructor.Id)
-                return BadRequest(new { Message = "Instructor ID mismatch." });
+            if (instructorUpdateRequestDto == null)
+                return BadRequest(new { Message = "Instructor data is required." });
+
+            var existingInstructor = await _instructorService.GetByIdAsync(id);
+            if (existingInstructor == null)
+                return NotFound(new { Message = "Instructor not found." });
+
+            existingInstructor.Name = instructorUpdateRequestDto.Name ?? existingInstructor.Name;
+            existingInstructor.About = instructorUpdateRequestDto.About ?? existingInstructor.About;
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-                var updatedInstructor = await _instructorService.UpdateAsync(instructor);
+                var updatedInstructor = await _instructorService.UpdateAsync(existingInstructor);
                 return Ok(updatedInstructor);
             }
             catch (KeyNotFoundException)
@@ -69,21 +85,33 @@ namespace TechCareer.API.Controllers
             }
         }
 
- 
+
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id, [FromQuery] bool permanent = false)
         {
             try
             {
-                var instructor = new Instructor { Id = id };
-                var deletedInstructor = await _instructorService.DeleteAsync(instructor, permanent);
+                var deleteRequest = new InstructorDeleteRequestDto
+                {
+                    Id = id,
+                    Permanent = permanent
+                };
+
+                var deletedInstructor = await _instructorService.DeleteAsync(deleteRequest);
+
                 return Ok(deletedInstructor);
             }
             catch (KeyNotFoundException)
             {
                 return NotFound(new { Message = "Instructor not found." });
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while deleting the instructor.", Details = ex.Message });
+            }
         }
+
 
 
         [HttpGet("paginate")]
