@@ -6,22 +6,23 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using TechCareer.Models.Dtos.Category;
 using TechCareer.Models.Dtos.Event;
 
 namespace TechCareer.Service.Abstracts
 {
     public interface IEventService
     {
-        Task<Event?> GetAsync(
-    Expression<Func<Event, bool>> predicate,
-    bool include = false,
-    bool withDeleted = false,
-    bool enableTracking = true,
-    CancellationToken cancellationToken = default
-);
+        Task<EventResponseDto?> GetAsync(
+            Expression<Func<Event, bool>> predicate,
+            bool include = false,
+            bool withDeleted = false,
+            bool enableTracking = true,
+            CancellationToken cancellationToken = default
+        );
 
 
-        Task<Paginate<Event>> GetPaginateAsync(Expression<Func<Event, bool>>? predicate = null,
+        Task<Paginate<EventResponseDto>> GetPaginateAsync(Expression<Func<Event, bool>>? predicate = null,
             Func<IQueryable<Event>, IOrderedQueryable<Event>>? orderBy = null,
             bool include = false,
             int index = 0,
@@ -31,7 +32,7 @@ namespace TechCareer.Service.Abstracts
             CancellationToken cancellationToken = default);
 
 
-        Task<List<Event>> GetListAsync(Expression<Func<Event, bool>>? predicate = null,
+        Task<List<EventResponseDto>> GetListAsync(Expression<Func<Event, bool>>? predicate = null,
             Func<IQueryable<Event>, IOrderedQueryable<Event>>? orderBy = null,
             bool include = false,
             bool withDeleted = false,
@@ -39,9 +40,9 @@ namespace TechCareer.Service.Abstracts
             CancellationToken cancellationToken = default);
 
 
-        Task<Event> AddAsync(EventAddRequestDto eventAddRequestDto);
-        Task<Event> UpdateAsync(EventUpdateRequestDto eventUpdateRequestDto);
-        Task<Event> DeleteAsync(Event Event, bool permanent = false);
-
+        Task<EventResponseDto> AddAsync(EventAddRequestDto eventAddRequestDto);
+        Task<EventResponseDto> UpdateAsync(EventUpdateRequestDto eventUpdateRequestDto);
+        Task<EventResponseDto> DeleteAsync(EventRequestDto eventRequestDto, bool permanent = false);
+        Task<EventResponseDto> FindEventAsync(EventRequestDto eventRequestDto);
     }
 } 
