@@ -13,7 +13,7 @@ namespace TechCareer.Service.Abstracts
 
     public interface IOperationClaimService
     {
-        Task<OperationClaim?> GetAsync(
+        Task<OperationClaimResponseDto?> GetAsync(
     Expression<Func<OperationClaim, bool>> predicate,
     bool include = false,
     bool withDeleted = false,
@@ -22,7 +22,7 @@ namespace TechCareer.Service.Abstracts
 );
 
 
-        Task<Paginate<OperationClaim>> GetPaginateAsync(Expression<Func<OperationClaim, bool>>? predicate = null,
+        Task<Paginate<OperationClaimResponseDto>> GetPaginateAsync(Expression<Func<OperationClaim, bool>>? predicate = null,
             Func<IQueryable<OperationClaim>, IOrderedQueryable<OperationClaim>>? orderBy = null,
             bool include = false,
             int index = 0,
@@ -32,7 +32,7 @@ namespace TechCareer.Service.Abstracts
             CancellationToken cancellationToken = default);
 
 
-        Task<List<OperationClaim>> GetListAsync(Expression<Func<OperationClaim, bool>>? predicate = null,
+        Task<List<OperationClaimResponseDto>> GetListAsync(Expression<Func<OperationClaim, bool>>? predicate = null,
             Func<IQueryable<OperationClaim>, IOrderedQueryable<OperationClaim>>? orderBy = null,
             bool include = false,
             bool withDeleted = false,
@@ -41,9 +41,9 @@ namespace TechCareer.Service.Abstracts
 
 
 
-        Task<OperationClaim> AddAsync(OperationClaim operationClaim);
-        Task<OperationClaim> UpdateAsync(OperationClaimUpdateRequestDto updateRequestDto);
-        Task<OperationClaim> DeleteAsync(OperationClaimDeleteRequestDto operationClaimDeleteRequestDto);
+        Task<OperationClaimResponseDto> AddAsync(OperationClaimAddRequestDto operationClaimAddRequestDto);
+        Task<OperationClaimResponseDto> UpdateAsync(OperationClaimUpdateRequestDto operationClaimUpdateRequestDto);
+        Task<OperationClaimResponseDto> DeleteAsync(OperationClaimRequestDto operationClaimRequestDto, bool permanent = false);
 
 
     }

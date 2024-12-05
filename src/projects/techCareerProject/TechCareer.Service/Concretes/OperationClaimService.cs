@@ -1,12 +1,6 @@
 ﻿using Core.Persistence.Extensions;
 using Core.Security.Entities;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using TechCareer.Models.Dtos.OperationClaim;
 using TechCareer.Service.Abstracts;
@@ -22,90 +16,137 @@ namespace TechCareer.Service.Concretes
             _operationClaimRepository = operationClaimRepository;
         }
 
-        public async Task<OperationClaim> AddAsync(OperationClaim operationClaim)
+        // Get a single operation claim with optional filters
+        public async Task<OperationClaimResponseDto?> GetAsync(
+            Expression<Func<OperationClaim, bool>> predicate,
+            bool include = false,
+            bool withDeleted = false,
+            bool enableTracking = true,
+            CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(operationClaim.Name))
-                throw new ArgumentException("Operation claim name cannot be null or empty.");
+            var operationClaim = await _operationClaimRepository.GetAsync(predicate, withDeleted: withDeleted);
 
-            var addedClaim = await _operationClaimRepository.AddAsync(operationClaim);
-            return addedClaim;
-        }
+            if (operationClaim == null)
+                return null;
 
-        public async Task<OperationClaim> DeleteAsync(OperationClaimDeleteRequestDto operationClaimDeleteRequestDto)
-        {
-            var existingClaim = await _operationClaimRepository.GetAsync(c => c.Id == operationClaimDeleteRequestDto.Id);
-
-            if (existingClaim == null)
-                throw new KeyNotFoundException("Operation claim not found.");
-
-            if (operationClaimDeleteRequestDto.Permanent)
+            return new OperationClaimResponseDto
             {
-                await _operationClaimRepository.DeleteAsync(existingClaim);
-            }
-            else
-            {
-                existingClaim.IsDeleted = true;
-                await _operationClaimRepository.UpdateAsync(existingClaim);
-            }
-
-            return existingClaim;
-        }
-
-
-        public async Task<OperationClaim?> GetAsync(Expression<Func<OperationClaim, bool>> predicate, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
-        {
-            var operationClaim = await _operationClaimRepository.GetAsync(predicate);
-
-            return operationClaim;
-        }
-
-        public async Task<List<OperationClaim>> GetListAsync(Expression<Func<OperationClaim, bool>>? predicate = null, Func<IQueryable<OperationClaim>, IOrderedQueryable<OperationClaim>>? orderBy = null, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
-        {
-            var operationClaims = await _operationClaimRepository.GetListAsync();
-            return operationClaims;
-        }
-
-        public async Task<Paginate<OperationClaim>> GetPaginateAsync(Expression<Func<OperationClaim, bool>>? predicate = null, Func<IQueryable<OperationClaim>, IOrderedQueryable<OperationClaim>>? orderBy = null, bool include = false, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
-        {
-            IQueryable<OperationClaim> operationClaims = (IQueryable<OperationClaim>)_operationClaimRepository.GetListAsync();
-
-            if (!withDeleted)
-              operationClaims = operationClaims.Where(c => !c.IsDeleted);
-            if (predicate != null)
-               operationClaims = operationClaims.Where(predicate);
-            if (!enableTracking)
-               operationClaims = operationClaims.AsNoTracking();
-            
-            int totalItems = await operationClaims.CountAsync(cancellationToken);
-
-            List<OperationClaim> items = await operationClaims
-                .Skip(index * size)
-                .Take(size)
-                .ToListAsync(cancellationToken);
-
-            return new Paginate<OperationClaim>
-            {
-                Items = items,
-                Index = index,
-                Size = size,
-                TotalItems = totalItems,
-                TotalPages = (int)Math.Ceiling(totalItems / (double)size)
+                Id = operationClaim.Id,
+                Name = operationClaim.Name
             };
         }
 
-        public async Task<OperationClaim> UpdateAsync(OperationClaimUpdateRequestDto updateRequestDto)
+        // Get paginated list of operation claims
+        public async Task<Paginate<OperationClaimResponseDto>> GetPaginateAsync(
+            Expression<Func<OperationClaim, bool>>? predicate = null,
+            Func<IQueryable<OperationClaim>, IOrderedQueryable<OperationClaim>>? orderBy = null,
+            bool include = false,
+            int index = 0,
+            int size = 10,
+            bool withDeleted = false,
+            bool enableTracking = true,
+            CancellationToken cancellationToken = default)
         {
-            var existingClaim = await _operationClaimRepository.GetAsync(c => c.Id == updateRequestDto.Id);
+            var paginateResult = await _operationClaimRepository.GetPaginateAsync(predicate, index: index, size: size, enableTracking: enableTracking, withDeleted: withDeleted);
 
-            if (existingClaim == null)
-                throw new KeyNotFoundException("Operation claim not found.");
-
-            existingClaim.Name = updateRequestDto.Name;
-
-            var updatedClaim = await _operationClaimRepository.UpdateAsync(existingClaim);
-
-            return updatedClaim;
+            return new Paginate<OperationClaimResponseDto>
+            {
+                Items = paginateResult.Items.Select(operationClaim => new OperationClaimResponseDto
+                {
+                    Id = operationClaim.Id,
+                    Name = operationClaim.Name
+                }).ToList(),
+                Index = paginateResult.Index,
+                Size = paginateResult.Size,
+                TotalItems = paginateResult.TotalItems,
+                TotalPages = paginateResult.TotalPages
+            };
         }
 
+        // Get list of operation claims
+        public async Task<List<OperationClaimResponseDto>> GetListAsync(
+            Expression<Func<OperationClaim, bool>>? predicate = null,
+            Func<IQueryable<OperationClaim>, IOrderedQueryable<OperationClaim>>? orderBy = null,
+            bool include = false,
+            bool withDeleted = false,
+            bool enableTracking = true,
+            CancellationToken cancellationToken = default)
+        {
+            var operationClaims = await _operationClaimRepository.GetListAsync(predicate, orderBy, enableTracking, withDeleted);
+
+            return operationClaims.Select(operationClaim => new OperationClaimResponseDto
+            {
+                Id = operationClaim.Id,
+                Name = operationClaim.Name
+            }).ToList();
+        }
+
+        // Add a new operation claim
+        public async Task<OperationClaimResponseDto> AddAsync(OperationClaimAddRequestDto operationClaimAddRequestDto)
+        {
+            // Yeni bir OperationClaim entity oluştur
+            var operationClaim = new OperationClaim
+            {
+                Name = operationClaimAddRequestDto.Name
+            };
+
+            // Veritabanına kaydet
+            var addedOperationClaim = await _operationClaimRepository.AddAsync(operationClaim);
+
+            // Cevap DTO'su oluştur ve geri döndür
+            return new OperationClaimResponseDto
+            {
+                Id = addedOperationClaim.Id,
+                Name = addedOperationClaim.Name
+            };
+        }
+
+        // Update an existing operation claim
+        public async Task<OperationClaimResponseDto> UpdateAsync(OperationClaimUpdateRequestDto operationClaimUpdateRequestDto)
+        {
+            var operationClaim = await _operationClaimRepository.GetAsync(x => x.Id == operationClaimUpdateRequestDto.Id);
+
+            if (operationClaim == null)
+                throw new ApplicationException("Operation claim not found.");
+
+            // Update fields
+            operationClaim.Name = operationClaimUpdateRequestDto.Name;
+
+            var updatedOperationClaim = await _operationClaimRepository.UpdateAsync(operationClaim);
+
+            return new OperationClaimResponseDto
+            {
+                Id = updatedOperationClaim.Id,
+                Name = updatedOperationClaim.Name
+            };
+        }
+
+        // Delete an operation claim
+        public async Task<OperationClaimResponseDto> DeleteAsync(OperationClaimRequestDto operationClaimRequestDto, bool permanent = false)
+        {
+            var operationClaim = await _operationClaimRepository.GetAsync(
+                x => x.Id == operationClaimRequestDto.Id,
+                withDeleted: true
+            );
+
+            if (operationClaim == null)
+                throw new ApplicationException("Operation claim not found.");
+
+            if (permanent)
+            {
+                await _operationClaimRepository.DeleteAsync(operationClaim, true);
+            }
+            else
+            {
+                operationClaim.IsDeleted = true;
+                await _operationClaimRepository.DeleteAsync(operationClaim);
+            }
+
+                return new OperationClaimResponseDto
+            {
+                Id = operationClaim.Id,
+                Name = operationClaim.Name
+            };
+        }
     }
 }
