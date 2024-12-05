@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Linq.Expressions;
 using TechCareer.Service.Abstracts;
-using TechCareer.Models.Dtos.Job; 
+using TechCareer.Models.Dtos.Job;
+using Core.CrossCuttingConcerns.Serilog;
 
 namespace TechCareer.API.Controllers
 {
@@ -10,16 +11,21 @@ namespace TechCareer.API.Controllers
     public class JobController : ControllerBase
     {
         private readonly IJobService _jobService;
+        private readonly LoggerServiceBase _logger;
 
-        public JobController(IJobService jobService)
+        public JobController(IJobService jobService, LoggerServiceBase logger)
         {
             _jobService = jobService;
+            _logger = logger;
         }
 
         // Get all jobs
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] bool includeDeleted = false)
         {
+            _logger.Info("Info log: Bu bir test logudur.");
+            _logger.Warn("Warn log: Bu bir uyarı mesajıdır.");
+            _logger.Error("Error log: Bu bir hata mesajıdır.");
             var jobs = await _jobService.GetListAsync(withDeleted: includeDeleted);
             return Ok(jobs);
         }

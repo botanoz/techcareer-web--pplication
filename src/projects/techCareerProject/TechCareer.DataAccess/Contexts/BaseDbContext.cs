@@ -12,7 +12,7 @@ public class BaseDbContext : DbContext
     public BaseDbContext(DbContextOptions<BaseDbContext> opt, IConfiguration configuration) : base(opt)
     {
         Configuration = configuration;
-        //Database.EnsureCreated();
+        Database.EnsureCreated();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

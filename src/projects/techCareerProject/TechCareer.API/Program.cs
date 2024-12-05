@@ -1,32 +1,57 @@
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
+using Core.CrossCuttingConcerns.Serilog;
+using Core.CrossCuttingConcerns.Serilog.Loggers;
 using Core.Security;
 using Core.Security.Encryption;
 using Core.Security.JWT;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Autofac;
-using Autofac.Extensions.DependencyInjection;
-using Core.AOP.Helpers;
-using Core.CrossCuttingConcerns.Exceptions.Extensions;
-using TechCareer.DataAccess;
-using TechCareer.Service;
-using TechCareer.Service.DependencyResolvers.Autofac;
-using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.MSSqlServer;
+using System.Text.Json.Serialization;
+using TechCareer.DataAccess;
+using TechCareer.Service.DependencyResolvers.Autofac;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddDataAccessServices(builder.Configuration);
-builder.Services.AddServiceDependencies();
-builder.Services.AddSecurityServices();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddStackExchangeRedisCache(opt => opt.Configuration = "localhost:6379");
-ServiceTool.Create(builder.Services);
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration) // appsettings.json'dan oku
+    .Enrich.FromLogContext()
+    .WriteTo.Console() // Konsola log yaz
+    .WriteTo.File(
+        path: builder.Configuration["SerilogLogConfigurations:FileLogConfiguration:FolderPath"] + "log-.txt",
+        rollingInterval: RollingInterval.Day,
+        restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information
+    )
+    .WriteTo.MSSqlServer(
+        connectionString: builder.Configuration["SerilogLogConfigurations:MsSqlConfiguration:ConnectionString"],
+        sinkOptions: new MSSqlServerSinkOptions
+        {
+            TableName = builder.Configuration["SerilogLogConfigurations:MsSqlConfiguration:TableName"],
+            AutoCreateSqlTable = Convert.ToBoolean(builder.Configuration["SerilogLogConfigurations:MsSqlConfiguration:AutoCreateSqlTable"])
+        },
+        columnOptions: new ColumnOptions(),
+        restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information
+    )
+    .CreateLogger();
 
+builder.Host.UseSerilog(); // Serilog'u Host ile baðla
+
+// Veri eriþimi servislerini kaydet
+builder.Services.AddDataAccessServices(builder.Configuration);
+
+// Logger servisini kaydet (FileLogger olarak kullanmak için)
+builder.Services.AddSingleton<LoggerServiceBase, FileLogger>();
+
+// JWT kimlik doðrulama yapýlandýrmasý
 const string tokenOptionsConfigurationSection = "TokenOptions";
-TokenOptions tokenOptions =
-    builder.Configuration.GetSection(tokenOptionsConfigurationSection).Get<TokenOptions>()
-    ?? throw new InvalidOperationException($"\"{tokenOptionsConfigurationSection}\" section cannot found in configuration.");
+var tokenOptions = builder.Configuration.GetSection(tokenOptionsConfigurationSection).Get<TokenOptions>()
+                   ?? throw new InvalidOperationException($"\"{tokenOptionsConfigurationSection}\" section cannot found in configuration.");
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -43,14 +68,7 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("DefaultPolicy", policy =>
-    {
-        policy.RequireAuthenticatedUser();
-    });
-});
-
+// Diðer servis ve middleware baðýmlýlýklarý
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -59,18 +77,7 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.WriteIndented = true;
     });
 
-// Add CORS configuration
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAllOrigins", builder =>
-    {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
-    });
-});
-
-// Swagger configuration with Authorization
+// Swagger yapýlandýrmasý
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -100,18 +107,19 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// Autofac entegrasyonu
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 builder.Host.ConfigureContainer<ContainerBuilder>(container =>
 {
     container.RegisterModule(new AutofacBusinessModule());
 });
 
+// Uygulamayý oluþtur
 var app = builder.Build();
 
-// CORS middleware
-app.UseCors("AllowAllOrigins");
+// Middleware eklemeleri
+app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -119,10 +127,17 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+// Request ve response loglama middleware
+app.Use(async (context, next) =>
+{
+    var logger = app.Services.GetRequiredService<LoggerServiceBase>();
+    logger.Info($"Request: {context.Request.Method} {context.Request.Path}");
+    await next.Invoke();
+    logger.Info($"Response: {context.Response.StatusCode}");
+});
 
+app.MapControllers();
 app.Run();
