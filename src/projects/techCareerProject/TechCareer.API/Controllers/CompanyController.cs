@@ -72,6 +72,7 @@ namespace TechCareer.API.Controllers
             {
                 Name = companyAddRequestDto.Name,
                 Location = companyAddRequestDto.Location,
+                Description= companyAddRequestDto.Description,
                
             };
 

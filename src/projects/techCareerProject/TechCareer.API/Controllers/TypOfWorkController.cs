@@ -23,23 +23,39 @@ namespace TechCareer.API.Controllers
         public async Task<IActionResult> GetAllTypOfWorks()
         {
             var typOfWorks = await _typOfWorkRepository.GetListAsync();
+
             if (typOfWorks == null || typOfWorks.Count == 0)
             {
                 return NotFound("No types of work found.");
             }
-            return Ok(typOfWorks);
+
+            var typOfWorkDtos = typOfWorks.Select(typOfWork => new TypeOfWorkResponseDto
+            {
+                Name = typOfWork.Name 
+            }).ToList();
+
+            return Ok(typOfWorkDtos);
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTypOfWork(int id)
         {
             var typOfWork = await _typOfWorkRepository.GetAsync(t => t.Id == id);
+
             if (typOfWork == null)
             {
                 return NotFound($"Type of work with id {id} not found.");
             }
-            return Ok(typOfWork);
+
+            var typOfWorkDto = new TypeOfWorkResponseDto
+            {
+                Name = typOfWork.Name
+            };
+
+            return Ok(typOfWorkDto);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> CreateTypeOfWork([FromBody] TypeOfWorkAddRequestDto typeOfWorkAddRequestDto)
@@ -91,8 +107,19 @@ namespace TechCareer.API.Controllers
                 return NotFound($"Type of work with id {id} not found.");
             }
 
+            var typOfWorkDto = new TypeOfWorkResponseDto
+            {
+                Name = typOfWork.Name
+            };
+
             await _typOfWorkRepository.DeleteAsync(typOfWork);
-            return NoContent(); 
+
+            return Ok(new
+            {
+                Message = "Type of work deleted successfully.",
+                DeletedTypeOfWork = typOfWorkDto
+            });
         }
+
     }
 }
