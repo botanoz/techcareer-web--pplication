@@ -78,7 +78,13 @@ namespace TechCareer.API.Controllers
 
             var createdCompany = await _companyRepository.AddAsync(company);
 
-            return CreatedAtAction(nameof(GetCompany), new { id = createdCompany.Id }, createdCompany);
+            return CreatedAtAction(nameof(GetCompany), new { id = createdCompany.Id }, new CompanyResponseDto
+            {
+                Name = companyAddRequestDto.Name,
+                Location = companyAddRequestDto.Location,
+                Description = companyAddRequestDto.Description,
+
+            });
         }
 
         [HttpPut("{id}")]
@@ -102,7 +108,13 @@ namespace TechCareer.API.Controllers
 
             var updatedCompany = await _companyRepository.UpdateAsync(existingCompany);
 
-            return Ok(updatedCompany);
+            return Ok(new CompanyResponseDto
+            {
+                Name = updatedCompany.Name,
+                Location = updatedCompany.Location,
+                Description = updatedCompany.Description,
+
+            });
         }
 
 

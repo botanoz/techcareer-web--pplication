@@ -70,7 +70,10 @@ namespace TechCareer.API.Controllers
 
             var createdYearsOfExperience = await _yearsOfExperienceRepository.AddAsync(yearsOfExperience);
 
-            return CreatedAtAction(nameof(GetYearsOfExperience), new { id = createdYearsOfExperience.Id }, createdYearsOfExperience);
+            return CreatedAtAction(nameof(GetYearsOfExperience), new { id = createdYearsOfExperience.Id }, new YearsOfExperienceResponseDto
+            {
+                Name = yearsOfExperienceAddRequestDto.Name
+            });
         }
 
 
@@ -92,7 +95,10 @@ namespace TechCareer.API.Controllers
 
             var updatedYearsOfExperience = await _yearsOfExperienceRepository.UpdateAsync(existingYearsOfExperience);
 
-            return Ok(updatedYearsOfExperience);
+            return Ok(new YearsOfExperienceResponseDto
+            {
+                Name = updatedYearsOfExperience.Name
+            });
         }
 
 
