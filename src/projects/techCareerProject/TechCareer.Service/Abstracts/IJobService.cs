@@ -6,18 +6,19 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using TechCareer.Models.Dtos.Job;
 
 namespace TechCareer.Service.Abstracts
 {
     public interface IJobService
     {
         Task<Job?> GetAsync(
-Expression<Func<Job, bool>> predicate,
-bool include = false,
-bool withDeleted = false,
-bool enableTracking = true,
-CancellationToken cancellationToken = default
-);
+        Expression<Func<Job, bool>> predicate,
+        bool include = false,
+        bool withDeleted = false,
+        bool enableTracking = true,
+        CancellationToken cancellationToken = default
+    );
 
 
         Task<Paginate<Job>> GetPaginateAsync(Expression<Func<Job, bool>>? predicate = null,
@@ -38,8 +39,8 @@ CancellationToken cancellationToken = default
             CancellationToken cancellationToken = default);
 
 
-        Task<Job> AddAsync(Job job);
-        Task<Job> UpdateAsync(Job job);
+        Task<Job> AddAsync(JobAddRequestDto jobAddRequestDto);
+        Task<Job> UpdateAsync(JobUpdateRequestDto jobUpdateRequestDto);
         Task<Job> DeleteAsync(Job job, bool permanent = false);
 
     }
