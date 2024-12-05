@@ -22,23 +22,41 @@ namespace TechCareer.API.Controllers
         public async Task<IActionResult> GetAllDictionaries()
         {
             var dictionaries = await _dictionaryRepository.GetListAsync();
+
             if (dictionaries == null || dictionaries.Count == 0)
             {
                 return NotFound("No dictionaries found.");
             }
-            return Ok(dictionaries);
+
+            var dictionaryDtos = dictionaries.Select(dictionary => new DictionaryResponseDto
+            {
+                Title = dictionary.Title,
+                Description = dictionary.Description
+            }).ToList();
+
+            return Ok(dictionaryDtos);
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDictionary(int id)
         {
             var dictionary = await _dictionaryRepository.GetAsync(d => d.Id == id);
+
             if (dictionary == null)
             {
                 return NotFound($"Dictionary with id {id} not found.");
             }
-            return Ok(dictionary);
+
+            var dictionaryDto = new DictionaryResponseDto
+            {
+                Title = dictionary.Title,
+                Description = dictionary.Description
+            };
+
+            return Ok(dictionaryDto);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> CreateDictionary([FromBody] DictionaryAddRequestDto dictionaryAddRequestDto)
@@ -94,8 +112,20 @@ namespace TechCareer.API.Controllers
                 return NotFound($"Dictionary with id {id} not found.");
             }
 
+            var dictionaryDto = new DictionaryResponseDto
+            {
+                Title = dictionary.Title,
+                Description = dictionary.Description
+            };
+
             await _dictionaryRepository.DeleteAsync(dictionary);
-            return NoContent();
+
+            return Ok(new
+            {
+                Message = "Dictionary deleted successfully.",
+                DeletedDictionary = dictionaryDto
+            });
         }
+
     }
 }
