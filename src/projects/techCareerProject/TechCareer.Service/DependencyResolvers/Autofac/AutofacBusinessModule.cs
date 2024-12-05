@@ -4,6 +4,7 @@ using Castle.DynamicProxy;
 using Core.AOP.AspectInterceptors;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using TechCareer.DataAccess.Repositories.Concretes;
+using TechCareer.Service.Rules;
 
 namespace TechCareer.Service.DependencyResolvers.Autofac
 {
@@ -11,20 +12,22 @@ namespace TechCareer.Service.DependencyResolvers.Autofac
     {
         protected override void Load(ContainerBuilder builder)
         {
-
             builder.RegisterType<AspectInterceptorSelector>().AsSelf().InstancePerDependency();
+
             var assembly = System.Reflection.Assembly.GetExecutingAssembly();
 
             builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces()
-                .EnableInterfaceInterceptors(new ProxyGenerationOptions()
+                .EnableInterfaceInterceptors(new ProxyGenerationOptions
                 {
                     Selector = new AspectInterceptorSelector()
                 }).SingleInstance();
 
             builder.RegisterType<CategoryRepository>()
-        .As<ICategoryRepository>()
-        .InstancePerLifetimeScope();
+                .As<ICategoryRepository>()
+                .InstancePerLifetimeScope();
 
+            builder.RegisterType<CategoryBusinessRules>() 
+                .InstancePerLifetimeScope();
         }
     }
 }
