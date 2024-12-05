@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using Core.Security.Entities;
 using System.Collections.Generic;
+using TechCareer.Models.Dtos.WorkPlace;
 
 namespace TechCareer.API.Controllers
 {
@@ -40,21 +41,28 @@ namespace TechCareer.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateWorkPlace([FromBody] WorkPlace workPlace)
+        public async Task<IActionResult> CreateWorkPlace([FromBody] WorkPlaceAddRequestDto workPlaceAddRequestDto)
         {
-            if (workPlace == null)
+            if (workPlaceAddRequestDto == null || string.IsNullOrWhiteSpace(workPlaceAddRequestDto.Name))
             {
-                return BadRequest("Work place data is required.");
+                return BadRequest("Work place name is required.");
             }
 
+            var workPlace = new WorkPlace
+            {
+                Name = workPlaceAddRequestDto.Name
+            };
+
             var createdWorkPlace = await _workPlaceRepository.AddAsync(workPlace);
+
             return CreatedAtAction(nameof(GetWorkPlace), new { id = createdWorkPlace.Id }, createdWorkPlace);
         }
 
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateWorkPlace(int id, [FromBody] WorkPlace workPlace)
+        public async Task<IActionResult> UpdateWorkPlace(int id, [FromBody] WorkPlaceUpdateRequestDto workPlaceUpdateRequestDto)
         {
-            if (workPlace == null || workPlace.Id != id)
+            if (workPlaceUpdateRequestDto == null || string.IsNullOrWhiteSpace(workPlaceUpdateRequestDto.Name))
             {
                 return BadRequest("Work place data is invalid.");
             }
@@ -65,9 +73,13 @@ namespace TechCareer.API.Controllers
                 return NotFound($"Work place with id {id} not found.");
             }
 
-            var updatedWorkPlace = await _workPlaceRepository.UpdateAsync(workPlace);
+            existingWorkPlace.Name = workPlaceUpdateRequestDto.Name;
+
+            var updatedWorkPlace = await _workPlaceRepository.UpdateAsync(existingWorkPlace);
+
             return Ok(updatedWorkPlace);
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteWorkPlace(int id)

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using TechCareer.Models.Dtos.OperationClaim;
 
 namespace TechCareer.Service.Abstracts
 {
@@ -39,9 +40,11 @@ namespace TechCareer.Service.Abstracts
             CancellationToken cancellationToken = default);
 
 
-        Task<OperationClaim> AddAsync(OperationClaim OperationClaim);
-        Task<OperationClaim> UpdateAsync(OperationClaim OperationClaim);
-        Task<OperationClaim> DeleteAsync(OperationClaim OperationClaim, bool permanent = false);
+
+        Task<OperationClaim> AddAsync(OperationClaim operationClaim);
+        Task<OperationClaim> UpdateAsync(OperationClaimUpdateRequestDto updateRequestDto);
+        Task<OperationClaim> DeleteAsync(OperationClaimDeleteRequestDto operationClaimDeleteRequestDto);
+
 
     }
 

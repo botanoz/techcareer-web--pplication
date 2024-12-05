@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using Core.Security.Entities;
+using TechCareer.Models.Dtos.Company;
 
 namespace TechCareer.API.Controllers
 {
@@ -39,23 +40,32 @@ namespace TechCareer.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCompany([FromBody] Company company)
+        public async Task<IActionResult> CreateCompany([FromBody] CompanyAddRequestDto companyAddRequestDto)
         {
-            if (company == null)
+            if (companyAddRequestDto == null)
             {
                 return BadRequest("Company data is required.");
             }
 
+            
+            var company = new Company
+            {
+                Name = companyAddRequestDto.Name,
+                Location = companyAddRequestDto.Location,
+               
+            };
+
             var createdCompany = await _companyRepository.AddAsync(company);
+
             return CreatedAtAction(nameof(GetCompany), new { id = createdCompany.Id }, createdCompany);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCompany(int id, [FromBody] Company company)
+        public async Task<IActionResult> UpdateCompany(int id, [FromBody] CompanyUpdateRequestDto companyUpdateRequestDto)
         {
-            if (company == null || company.Id != id)
+            if (companyUpdateRequestDto == null)
             {
-                return BadRequest("Company data is invalid.");
+                return BadRequest("Company data is required.");
             }
 
             var existingCompany = await _companyRepository.GetAsync(c => c.Id == id);
@@ -64,9 +74,16 @@ namespace TechCareer.API.Controllers
                 return NotFound($"Company with id {id} not found.");
             }
 
-            var updatedCompany = await _companyRepository.UpdateAsync(company);
+            
+            existingCompany.Name = companyUpdateRequestDto.Name ?? existingCompany.Name;
+            existingCompany.Location = companyUpdateRequestDto.Location ?? existingCompany.Location;
+            
+
+            var updatedCompany = await _companyRepository.UpdateAsync(existingCompany);
+
             return Ok(updatedCompany);
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCompany(int id)
