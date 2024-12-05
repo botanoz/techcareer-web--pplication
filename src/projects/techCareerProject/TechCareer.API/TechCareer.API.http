@@ -1,6 +1,6 @@
-@TechCareer.API_HostAddress = http://localhost:5002
+@TechCareer.API_HostAddress = https://localhost:7122/api
 
-GET {{TechCareer.API_HostAddress}}/weatherforecast/
+GET {{TechCareer.API_HostAddress}}/Category?includeDeleted=false
 Accept: application/json
 
 ###
