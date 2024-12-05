@@ -31,7 +31,8 @@ namespace TechCareer.API.Controllers
             {
                 Name = company.Name,
                 Location = company.Location,
-                Description = company.Description
+                Description = company.Description,
+                ImageUrl = company.ImageUrl
             }).ToList();
 
             return Ok(companyDtos);
@@ -52,7 +53,8 @@ namespace TechCareer.API.Controllers
             {
                 Name = company.Name,
                 Location = company.Location,
-                Description = company.Description
+                Description = company.Description,
+                ImageUrl = company.ImageUrl
             };
 
             return Ok(companyDto);
@@ -73,6 +75,7 @@ namespace TechCareer.API.Controllers
                 Name = companyAddRequestDto.Name,
                 Location = companyAddRequestDto.Location,
                 Description= companyAddRequestDto.Description,
+                ImageUrl = companyAddRequestDto.ImageUrl
                
             };
 
@@ -98,7 +101,9 @@ namespace TechCareer.API.Controllers
             
             existingCompany.Name = companyUpdateRequestDto.Name ?? existingCompany.Name;
             existingCompany.Location = companyUpdateRequestDto.Location ?? existingCompany.Location;
-            
+            existingCompany.Description = companyUpdateRequestDto.Description ?? existingCompany.Description;
+            existingCompany.ImageUrl = companyUpdateRequestDto.ImageUrl ?? existingCompany.ImageUrl;
+
 
             var updatedCompany = await _companyRepository.UpdateAsync(existingCompany);
 
@@ -119,7 +124,8 @@ namespace TechCareer.API.Controllers
             {
                 Name = company.Name,
                 Location = company.Location,
-                Description = company.Description
+                Description = company.Description,
+                ImageUrl= company.ImageUrl,
             };
 
             await _companyRepository.DeleteAsync(company);
