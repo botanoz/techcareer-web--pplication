@@ -22,23 +22,38 @@ namespace TechCareer.API.Controllers
         public async Task<IActionResult> GetAllWorkPlaces()
         {
             var workPlaces = await _workPlaceRepository.GetListAsync();
+
             if (workPlaces == null || workPlaces.Count == 0)
             {
                 return NotFound("No work places found.");
             }
-            return Ok(workPlaces);
+
+            var workPlaceDtos = workPlaces.Select(workPlace => new WorkPlaceResponseDto
+            {
+                Name = workPlace.Name
+            }).ToList();
+
+            return Ok(workPlaceDtos);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetWorkPlace(int id)
         {
             var workPlace = await _workPlaceRepository.GetAsync(w => w.Id == id);
+
             if (workPlace == null)
             {
                 return NotFound($"Work place with id {id} not found.");
             }
-            return Ok(workPlace);
+
+            var workPlaceDto = new WorkPlaceResponseDto
+            {
+                Name = workPlace.Name
+            };
+
+            return Ok(workPlaceDto);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> CreateWorkPlace([FromBody] WorkPlaceAddRequestDto workPlaceAddRequestDto)
@@ -90,8 +105,19 @@ namespace TechCareer.API.Controllers
                 return NotFound($"Work place with id {id} not found.");
             }
 
+            var workPlaceDto = new WorkPlaceResponseDto
+            {
+                Name = workPlace.Name
+            };
+
             await _workPlaceRepository.DeleteAsync(workPlace);
-            return NoContent(); 
+
+            return Ok(new
+            {
+                Message = "Work place deleted successfully.",
+                DeletedWorkPlace = workPlaceDto
+            });
         }
+
     }
 }
