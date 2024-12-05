@@ -9,18 +9,20 @@ using Core.Security.Entities;
 using TechCareer.Service.Concretes;
 using TechCareer.Service.Abstracts;
 using Xunit;
+using Core.Persistence.Extensions;
+using TechCareer.DataAccess.Repositories.Abstracts;
 
 namespace TechCareer.Tests.UnitTests
 {
     public class VideoEducationServiceTests
     {
-        private readonly Mock<IVideoEducationService> _mockVideoEducationService;
+        private readonly Mock<IVideoEducationRepository> _mockVideoEducationRepository;
         private readonly VideoEducationService _videoEducationService;
 
         public VideoEducationServiceTests()
         {
-            _mockVideoEducationService = new Mock<IVideoEducationService>();
-            _videoEducationService = new VideoEducationService(_mockVideoEducationService.Object);
+            _mockVideoEducationRepository = new Mock<IVideoEducationRepository>();
+            _videoEducationService = new VideoEducationService(_mockVideoEducationRepository.Object);
         }
 
         [Fact]
@@ -39,8 +41,8 @@ namespace TechCareer.Tests.UnitTests
                 ProgrammingLanguage = "C#"
             };
 
-            _mockVideoEducationService
-                .Setup(service => service.AddAsync(It.IsAny<VideoEducation>()))
+            _mockVideoEducationRepository
+                .Setup(repository => repository.AddAsync(It.IsAny<VideoEducation>()))
                 .ReturnsAsync(newVideoEducation);
 
             // Act
@@ -69,17 +71,9 @@ namespace TechCareer.Tests.UnitTests
                 IsDeleted = false
             };
 
-          _mockVideoEducationService
-    .Setup(service => service.GetListAsync(
-        x => x.TotalHour > 5, // Örneğin: Saat filtresi
-        null, // Sıralama yok
-        false, // include
-        false, // withDeleted
-        true,  // enableTracking
-        CancellationToken.None // Varsayılan token
-    ))
-    .ReturnsAsync(new List<VideoEducation> { videoEducation });
-
+            _mockVideoEducationRepository
+                .Setup(repository => repository.DeleteAsync(It.IsAny<VideoEducation>(), It.IsAny<bool>()))
+                .ReturnsAsync(new VideoEducation { Id = 1, IsDeleted = true });
 
             // Act
             var result = await _videoEducationService.DeleteAsync(videoEducation);
@@ -105,15 +99,9 @@ namespace TechCareer.Tests.UnitTests
                 ProgrammingLanguage = "Python"
             };
 
-            _mockVideoEducationService
-    .Setup(service => service.GetAsync(
-        x => x.Id == 1,     // Belirli bir koşul
-        false,              // include
-        false,              // withDeleted
-        true,               // enableTracking
-        CancellationToken.None // Varsayılan token
-    ))
-    .ReturnsAsync(videoEducation);
+            _mockVideoEducationRepository
+                .Setup(repository => repository.GetAsync(It.IsAny<Expression<Func<VideoEducation, bool>>>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(videoEducation);
 
             // Act
             var result = await _videoEducationService.GetAsync(x => x.Id == 1);
@@ -134,17 +122,16 @@ namespace TechCareer.Tests.UnitTests
                 new VideoEducation { Id = 3, Title = "Python Tutorial" }
             };
 
-            _mockVideoEducationService
-        .Setup(service => service.GetListAsync(
-         null,                      // predicate
-         null,                      // orderBy
-         false,                     // include
-         false,                     // withDeleted
-         true,                      // enableTracking
-         It.IsAny<CancellationToken>() // cancellationToken
-     ))
-     .ReturnsAsync(videoEducations);
-
+            _mockVideoEducationRepository
+                .Setup(repository => repository.GetPaginateAsync(It.IsAny<Expression<Func<VideoEducation, bool>>>(), It.IsAny<Func<IQueryable<VideoEducation>, IOrderedQueryable<VideoEducation>>>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Paginate<VideoEducation>
+                {
+                    Items = videoEducations.Take(2).ToList(),
+                    TotalItems = videoEducations.Count,
+                    TotalPages = 2,
+                    Index = 0,
+                    Size = 2
+                });
 
             // Act
             var result = await _videoEducationService.GetPaginateAsync(index: 0, size: 2);
@@ -171,4 +158,3 @@ namespace TechCareer.Tests.UnitTests
         }
     }
 }
-
