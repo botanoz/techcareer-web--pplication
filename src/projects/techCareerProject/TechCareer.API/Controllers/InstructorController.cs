@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Linq.Expressions;
+using System.Threading.Tasks;
+using System;
 using TechCareer.Service.Abstracts;
-using TechCareer.Service.Concretes;
-using Core.Security.Entities;
 using TechCareer.Models.Dtos.Instructor;
 
 namespace TechCareer.API.Controllers
@@ -18,102 +17,73 @@ namespace TechCareer.API.Controllers
             _instructorService = instructorService;
         }
 
-
+        // Tüm eğitmenleri getirir
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] bool includeDeleted = false)
         {
-            var instructors = await _instructorService.GetListAsync(
-                withDeleted: includeDeleted);
+            var instructors = await _instructorService.GetListAsync(withDeleted: includeDeleted);
             return Ok(instructors);
         }
 
-
+        // ID ile eğitmen getirir
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var instructor = await _instructorService.GetAsync(x => x.Id == id);
+
             if (instructor == null)
                 return NotFound(new { Message = "Instructor not found." });
 
             return Ok(instructor);
         }
 
-
+        // Yeni eğitmen ekler
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] InstructorAddRequestDto instructorAddRequestDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var instructor = new Instructor
-            {
-                Name = instructorAddRequestDto.Name,
-                About = instructorAddRequestDto.About,
-
-            };
-
-            var addedInstructor = await _instructorService.AddAsync(instructor);
+            var addedInstructor = await _instructorService.AddAsync(instructorAddRequestDto);
             return CreatedAtAction(nameof(GetById), new { id = addedInstructor.Id }, addedInstructor);
         }
 
-
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] InstructorUpdateRequestDto instructorUpdateRequestDto)
+        // Eğitmen günceller
+        [HttpPut]
+        public async Task<IActionResult> Update([FromBody] InstructorUpdateRequestDto instructorUpdateRequestDto)
         {
-            if (instructorUpdateRequestDto == null)
-                return BadRequest(new { Message = "Instructor data is required." });
-
-            var existingInstructor = await _instructorService.GetByIdAsync(id);
-            if (existingInstructor == null)
-                return NotFound(new { Message = "Instructor not found." });
-
-            existingInstructor.Name = instructorUpdateRequestDto.Name ?? existingInstructor.Name;
-            existingInstructor.About = instructorUpdateRequestDto.About ?? existingInstructor.About;
-
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-                var updatedInstructor = await _instructorService.UpdateAsync(existingInstructor);
+                var updatedInstructor = await _instructorService.UpdateAsync(instructorUpdateRequestDto);
                 return Ok(updatedInstructor);
             }
-            catch (KeyNotFoundException)
+            catch (ApplicationException ex)
             {
-                return NotFound(new { Message = "Instructor not found." });
+                return NotFound(new { Message = ex.Message });
             }
         }
 
-
-
+        // Eğitmen siler
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id, [FromQuery] bool permanent = false)
         {
             try
             {
-                var deleteRequest = new InstructorDeleteRequestDto
-                {
-                    Id = id,
-                    Permanent = permanent
-                };
-
-                var deletedInstructor = await _instructorService.DeleteAsync(deleteRequest);
+                var deletedInstructor = await _instructorService.DeleteAsync(
+                    new InstructorRequestDto { Id = id }, permanent);
 
                 return Ok(deletedInstructor);
             }
-            catch (KeyNotFoundException)
+            catch (ApplicationException ex)
             {
-                return NotFound(new { Message = "Instructor not found." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "An error occurred while deleting the instructor.", Details = ex.Message });
+                return NotFound(new { Message = ex.Message });
             }
         }
 
-
-
+        // Sayfalandırılmış eğitmen listesi
         [HttpGet("paginate")]
         public async Task<IActionResult> GetPaginated(
             [FromQuery] int pageIndex = 0,
@@ -129,4 +99,3 @@ namespace TechCareer.API.Controllers
         }
     }
 }
-

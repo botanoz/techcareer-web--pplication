@@ -67,7 +67,10 @@ namespace TechCareer.Service.Concretes
         // Etkinlik silme metodu
         public async Task<EventResponseDto> DeleteAsync(EventRequestDto eventRequestDto, bool permanent = false)
         {
-            var selectedEvent = await _eventRepository.GetAsync(x => x.Id == eventRequestDto.Id, withDeleted: true);
+            var selectedEvent = await _eventRepository.GetAsync(
+                x => x.Id == eventRequestDto.Id,
+                withDeleted: true
+            );
 
             if (selectedEvent == null)
                 throw new ApplicationException("Event not found.");
@@ -110,7 +113,14 @@ namespace TechCareer.Service.Concretes
             return new EventResponseDto
             {
                 Id = eventEntity.Id,
-                Title = eventEntity.Title
+                Title = eventEntity.Title,
+                Description = eventEntity.Description,
+                ImageUrl = eventEntity.ImageUrl,
+                StartDate = eventEntity.StartDate,
+                EndDate = eventEntity.EndDate,
+                ApplicationDeadline = eventEntity.ApplicationDeadline,
+                ParticipationText = eventEntity.ParticipationText,
+                CategoryId = eventEntity.CategoryId
             };
         }
 

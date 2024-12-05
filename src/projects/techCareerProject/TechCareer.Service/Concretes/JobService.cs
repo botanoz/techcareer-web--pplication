@@ -187,7 +187,10 @@ namespace TechCareer.Service.Concretes
 
         public async Task<JobResponseDto> DeleteAsync(JobRequestDto jobRequestDto, bool permanent = false)
         {
-            var job = await _jobRepository.GetAsync(x => x.Id == jobRequestDto.Id, withDeleted: true);
+            var job = await _jobRepository.GetAsync(
+                x => x.Id == jobRequestDto.Id,
+                withDeleted: true
+            );
 
             if (job == null)
                 throw new ApplicationException("Job not found.");
