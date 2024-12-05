@@ -79,7 +79,7 @@ namespace TechCareer.Service.Concretes
             else
             {
                 selectedEvent.IsDeleted = true;
-                await _eventRepository.UpdateAsync(selectedEvent);
+                await _eventRepository.DeleteAsync(selectedEvent);
             }
 
             return new EventResponseDto

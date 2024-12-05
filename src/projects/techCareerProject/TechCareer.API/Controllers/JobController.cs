@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Linq.Expressions;
 using TechCareer.Service.Abstracts;
-using TechCareer.Service.Concretes;
-using Core.Security.Entities;
-using TechCareer.Models.Dtos.Job;
-using TechCareer.Models.Dtos.Event;
+using TechCareer.Models.Dtos.Job; 
 
 namespace TechCareer.API.Controllers
 {
@@ -19,26 +16,27 @@ namespace TechCareer.API.Controllers
             _jobService = jobService;
         }
 
+        // Get all jobs
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] bool includeDeleted = false)
         {
-            var jobs = await _jobService.GetListAsync(
-                withDeleted: includeDeleted);
+            var jobs = await _jobService.GetListAsync(withDeleted: includeDeleted);
             return Ok(jobs);
         }
 
- 
+        // Get job by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var job = await _jobService.GetAsync(x => x.Id == id);
+            var job = await _jobService.GetAsync(job => job.Id == id);
+
             if (job == null)
                 return NotFound(new { Message = "Job not found." });
 
             return Ok(job);
         }
 
- 
+        // Add a new job
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] JobAddRequestDto jobAddRequestDto)
         {
@@ -49,55 +47,57 @@ namespace TechCareer.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = addedJob.Id }, addedJob);
         }
 
-
-        [HttpPut]
-        public async Task<IActionResult> Update([FromBody] JobUpdateRequestDto jobUpdateRequestDto)
+        // Update an existing job
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] JobUpdateRequestDto jobUpdateRequestDto)
         {
-
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            // Ensure the correct ID is passed
+            jobUpdateRequestDto.Id = id;
+
             try
             {
-                var UpdatedEvent = await _jobService.UpdateAsync(jobUpdateRequestDto);
-                return Ok(UpdatedEvent);
+                var updatedJob = await _jobService.UpdateAsync(jobUpdateRequestDto);
+                return Ok(updatedJob);
             }
-            catch (KeyNotFoundException)
+            catch (ApplicationException ex)
             {
-                return NotFound(new { Message = "Event not found." });
+                return NotFound(new { Message = ex.Message });
             }
         }
 
-
+        // Delete a job
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id, [FromQuery] bool permanent = false)
         {
             try
             {
-                var job = new Job { Id = id };
-                var deletedJob = await _jobService.DeleteAsync(job, permanent);
+                var deletedJob = await _jobService.DeleteAsync(
+                    new JobRequestDto { Id = id }, permanent);
+
                 return Ok(deletedJob);
             }
-            catch (KeyNotFoundException)
+            catch (ApplicationException ex)
             {
-                return NotFound(new { Message = "Job not found." });
+                return NotFound(new { Message = ex.Message });
             }
         }
 
-
+        // Get paginated jobs
         [HttpGet("paginate")]
         public async Task<IActionResult> GetPaginated(
             [FromQuery] int pageIndex = 0,
             [FromQuery] int pageSize = 10,
             [FromQuery] bool includeDeleted = false)
         {
-            var result = await _jobService.GetPaginateAsync(
+            var paginatedJobs = await _jobService.GetPaginateAsync(
                 index: pageIndex,
                 size: pageSize,
                 withDeleted: includeDeleted);
 
-            return Ok(result);
+            return Ok(paginatedJobs);
         }
     }
 }
-

@@ -58,7 +58,7 @@ namespace TechCareer.Service.Concretes
             else
             {
                 category.IsDeleted = true;
-                await _categoryRepository.UpdateAsync(category);
+                await _categoryRepository.DeleteAsync(category);
             }
 
             return new CategoryResponseDto
