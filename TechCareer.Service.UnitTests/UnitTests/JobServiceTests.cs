@@ -135,15 +135,14 @@ namespace TechCareer.Service.Tests.UnitTests
             Assert.Equal(3, result.TotalItems);
             Assert.Equal(2, result.Items.Count);
         }
-
         [Fact]
-        public async Task DeleteAsync_ShouldMarkAsDeleted()
+        public async Task DeleteAsync_ShouldMarkAsDeleted_WhenJobIsFound()
         {
             var job = new Job
             {
                 Id = 2,
                 Title = "Software Developer",
-                IsDeleted = false,
+                IsDeleted = false,  // Başlangıçta silinmemiş
                 TypeOfWork = 1,
                 YearsOfExperience = 3,
                 WorkPlace = 2,
@@ -154,15 +153,30 @@ namespace TechCareer.Service.Tests.UnitTests
                 CompanyId = 1
             };
 
+            var jobRequestDto = new JobRequestDto
+            {
+                Id = job.Id,
+                CompanyId = job.CompanyId
+            };
+
+            // Mock: Repository'yi GetListAsync metodunu kullanacak şekilde ayarlıyoruz
             _mockJobRepository
                 .Setup(service => service.GetListAsync(It.IsAny<Expression<Func<Job, bool>>>(),
                     null, false, false, true, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<Job> { job });
 
-            var result = await _jobService.DeleteAsync(job);
+            // Mock: UpdateAsync metodunu çağıracak şekilde ayarlıyoruz (IsDeleted değerini true yapacağız)
+            _mockJobRepository
+                .Setup(service => service.UpdateAsync(It.Is<Job>(j => j.Id == job.Id && j.IsDeleted == true)))
+                .ReturnsAsync(job);
 
-            Assert.True(result.IsDeleted);
+            // Act: DeleteAsync metodunu çağırıyoruz
+            var result = await _jobService.DeleteAsync(jobRequestDto);
+
+            // Assert: Job nesnesinin IsDeleted değerinin true olduğunu kontrol ediyoruz
+            Assert.True(job.IsDeleted);  // Job nesnesinin silindiğini kontrol ediyoruz
         }
+
 
         [Fact]
         public async Task UpdateAsync_ShouldReturnUpdatedJob()

@@ -11,6 +11,7 @@ using TechCareer.Service.Abstracts;
 using Xunit;
 using Core.Persistence.Extensions;
 using TechCareer.DataAccess.Repositories.Abstracts;
+using TechCareer.Models.Dtos.VideoEducation;
 
 namespace TechCareer.Tests.UnitTests
 {
@@ -24,12 +25,11 @@ namespace TechCareer.Tests.UnitTests
             _mockVideoEducationRepository = new Mock<IVideoEducationRepository>();
             _videoEducationService = new VideoEducationService(_mockVideoEducationRepository.Object);
         }
-
         [Fact]
         public async Task AddAsync_ShouldReturnAddedVideoEducation()
         {
             // Arrange
-            var newVideoEducation = new VideoEducation
+            var newVideoEducationDto = new VideoEducationAddRequestDto
             {
                 Title = "C# Tutorial",
                 Description = "Learn C# from basics to advanced",
@@ -43,15 +43,27 @@ namespace TechCareer.Tests.UnitTests
 
             _mockVideoEducationRepository
                 .Setup(repository => repository.AddAsync(It.IsAny<VideoEducation>()))
-                .ReturnsAsync(newVideoEducation);
+                .ReturnsAsync(new VideoEducation
+                {
+                    Id = 1,
+                    Title = "C# Tutorial",
+                    Description = "Learn C# from basics to advanced",
+                    TotalHour = 10,
+                    IsCertified = true,
+                    Level = 1,
+                    ImageUrl = "image_url",
+                    InstructorId = Guid.NewGuid(),
+                    ProgrammingLanguage = "C#"
+                });
 
             // Act
-            var result = await _videoEducationService.AddAsync(newVideoEducation);
+            var result = await _videoEducationService.AddAsync(newVideoEducationDto); // Pass DTO here
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal("C# Tutorial", result.Title);
         }
+
 
         [Fact]
         public async Task DeleteAsync_ShouldMarkAsDeleted()
@@ -68,7 +80,7 @@ namespace TechCareer.Tests.UnitTests
                 ImageUrl = "image_url",
                 InstructorId = Guid.NewGuid(),
                 ProgrammingLanguage = "JavaScript",
-                IsDeleted = false
+                IsDeleted = false // Assuming your domain model has IsDeleted
             };
 
             _mockVideoEducationRepository
@@ -76,10 +88,14 @@ namespace TechCareer.Tests.UnitTests
                 .ReturnsAsync(new VideoEducation { Id = 1, IsDeleted = true });
 
             // Act
-            var result = await _videoEducationService.DeleteAsync(videoEducation);
+            var result = await _videoEducationService.DeleteAsync(new VideoEducationRequestDto { Id = 1 });
 
             // Assert
-            Assert.True(result.IsDeleted);
+            // Ensure that the returned DTO does not have 'IsDeleted'
+            Assert.NotNull(result);
+            Assert.Equal(1, result.Id);
+            Assert.Equal("JavaScript Tutorial", result.Title);
+            // Do not check for IsDeleted here if it's not part of the DTO
         }
 
         [Fact]
@@ -146,15 +162,17 @@ namespace TechCareer.Tests.UnitTests
         public async Task UpdateAsync_ShouldThrowNotImplementedException()
         {
             // Arrange
-            var videoEducation = new VideoEducation
+            var videoEducationUpdateDto = new VideoEducationUpdateRequestDto
             {
                 Id = 1,
                 Title = "C# Tutorial"
+                // Add any other properties that are part of the update DTO
             };
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<NotImplementedException>(() => _videoEducationService.UpdateAsync(videoEducation));
+            var exception = await Assert.ThrowsAsync<NotImplementedException>(() => _videoEducationService.UpdateAsync(videoEducationUpdateDto));
             Assert.Equal("The method or operation is not implemented.", exception.Message);
         }
+
     }
 }

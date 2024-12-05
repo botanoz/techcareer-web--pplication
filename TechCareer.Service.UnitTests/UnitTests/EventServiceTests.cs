@@ -91,12 +91,11 @@ namespace TechCareer.Service.Tests.UnitTests
             Assert.Equal("Existing Event", result?.Title);
         }
 
-
         [Fact]
         public async Task DeleteAsync_ShouldMarkEventAsDeleted_WhenEventExists()
         {
             // Arrange
-            var eventId = Guid.NewGuid();
+            var eventId = Guid.Parse("7ffc3c76-59b2-4c4e-b1e1-0c6de0e3629b"); // Use the specified ID
             var eventToDelete = new Event
             {
                 Id = eventId,
@@ -115,9 +114,9 @@ namespace TechCareer.Service.Tests.UnitTests
                 Id = eventId
             };
 
-            // Simplified mock setup to bypass optional parameters
+            // Setup mock to return the event with the given ID
             _mockEventRepository.Setup(repo => repo.GetAsync(
-                It.IsAny<Expression<Func<Event, bool>>>(), // Expression predicate
+                It.Is<Expression<Func<Event, bool>>>(expr => expr.Compile()(eventToDelete)),
                 true, // include (default value)
                 false, // withDeleted (default value)
                 true, // enableTracking (default value)
@@ -130,10 +129,9 @@ namespace TechCareer.Service.Tests.UnitTests
 
             // Assert
             Assert.NotNull(result);
-            Assert.True(eventToDelete.IsDeleted);
-            _mockEventRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Event>()), Times.Once);
+            Assert.True(eventToDelete.IsDeleted); // Ensure that the event is marked as deleted
+            _mockEventRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Event>()), Times.Once); // Verify UpdateAsync was called once
         }
-
 
 
         [Fact]
