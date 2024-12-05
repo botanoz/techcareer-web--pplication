@@ -72,7 +72,10 @@ namespace TechCareer.API.Controllers
 
             var createdTypeOfWork = await _typOfWorkRepository.AddAsync(typeOfWork);
 
-            return CreatedAtAction(nameof(GetTypOfWork), new { id = createdTypeOfWork.Id }, createdTypeOfWork);
+            return CreatedAtAction(nameof(GetTypOfWork), new { id = createdTypeOfWork.Id }, new TypeOfWorkResponseDto
+            {
+                Name = typeOfWorkAddRequestDto.Name
+            });
         }
 
 
@@ -94,7 +97,10 @@ namespace TechCareer.API.Controllers
 
             var updatedTypeOfWork = await _typOfWorkRepository.UpdateAsync(existingTypeOfWork);
 
-            return Ok(updatedTypeOfWork);
+            return Ok(new TypeOfWorkResponseDto
+            {
+                Name = updatedTypeOfWork.Name
+            });
         }
 
 
