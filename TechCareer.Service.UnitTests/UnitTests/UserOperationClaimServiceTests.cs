@@ -9,18 +9,19 @@ using Core.Security.Entities;
 using Core.Security.Dtos;
 using Xunit;
 using TechCareer.Service.Concretes;
+using TechCareer.DataAccess.Repositories.Abstracts;
 
 namespace TechCareer.Service.Tests
 {
     public class UserOperationClaimServiceTests
     {
-        private readonly Mock<IUserOperationClaimService> _mockUserOperationClaimService;
+        private readonly Mock<IUserOperationClaimRepository> _mockUserOperationClaimRepository;
         private readonly UserOperationClaimService _userOperationClaimService;
 
         public UserOperationClaimServiceTests()
         {
-            _mockUserOperationClaimService = new Mock<IUserOperationClaimService>();
-            _userOperationClaimService = new UserOperationClaimService(_mockUserOperationClaimService.Object);
+            _mockUserOperationClaimRepository = new Mock<IUserOperationClaimRepository>();
+            _userOperationClaimService = new UserOperationClaimService(_mockUserOperationClaimRepository.Object);
         }
 
         [Fact]
@@ -34,8 +35,8 @@ namespace TechCareer.Service.Tests
                 OperationClaim = new OperationClaim { Id = 2, Name = "Admin" }
             };
 
-            _mockUserOperationClaimService
-                .Setup(service => service.AddAsync(It.IsAny<UserOperationClaim>()))
+            _mockUserOperationClaimRepository
+                .Setup(repo => repo.AddAsync(It.IsAny<UserOperationClaim>()))
                 .ReturnsAsync(newClaim);
 
             // Act
@@ -62,24 +63,29 @@ namespace TechCareer.Service.Tests
                 OperationClaim = new OperationClaim { Id = 2, Name = "Admin" }
             };
 
-            _mockUserOperationClaimService
-                .Setup(service => service.GetListAsync(
-                    It.IsAny<Expression<Func<UserOperationClaim, bool>>>(),
-                    It.IsAny<Func<IQueryable<UserOperationClaim>, IOrderedQueryable<UserOperationClaim>>>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<CancellationToken>()
-                ))
+            // Mock repository methods
+            _mockUserOperationClaimRepository
+                .Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<UserOperationClaim, bool>>>(),
+                                                 It.IsAny<Func<IQueryable<UserOperationClaim>, IOrderedQueryable<UserOperationClaim>>>(),
+                                                 It.IsAny<bool>(),
+                                                 It.IsAny<bool>(),
+                                                 It.IsAny<bool>(),
+                                                 It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<UserOperationClaim> { existingClaim });
 
+            _mockUserOperationClaimRepository
+                .Setup(repo => repo.DeleteAsync(It.IsAny<UserOperationClaim>(), It.IsAny<bool>()))
+                .ReturnsAsync(existingClaim);  // Ensuring the mock returns the claim
 
             // Act
             var result = await _userOperationClaimService.DeleteAsync(existingClaim);
 
             // Assert
-            Assert.True(result.IsDeleted);
+            Assert.NotNull(result);               // Ensure the result is not null
+            Assert.True(result.IsDeleted);        // Assert that the IsDeleted flag is true
+            Assert.Equal(existingClaim.Id, result.Id); // Ensure the ID matches the original
         }
+
 
         [Fact]
         public async Task GetAsync_ShouldReturnUserOperationClaim()
@@ -92,16 +98,9 @@ namespace TechCareer.Service.Tests
                 OperationClaim = new OperationClaim { Id = 2, Name = "Admin" }
             };
 
-            _mockUserOperationClaimService
-        .Setup(service => service.GetAsync(
-            It.IsAny<Expression<Func<UserOperationClaim, bool>>>(),
-            It.IsAny<bool>(),
-            It.IsAny<bool>(),
-            It.IsAny<bool>(),
-            It.IsAny<CancellationToken>()
-        ))
-        .ReturnsAsync(existingClaim);
-
+            _mockUserOperationClaimRepository
+                .Setup(repo => repo.GetAsync(It.IsAny<Expression<Func<UserOperationClaim, bool>>>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(existingClaim);
 
             // Act
             var result = await _userOperationClaimService.GetAsync(x => x.UserId == 1);
@@ -129,17 +128,14 @@ namespace TechCareer.Service.Tests
                 User = new User(1, "John", "Doe", "john.doe@example.com", new byte[] { 1, 2, 3 }, new byte[] { 4, 5, 6 }, true),
                 OperationClaim = new OperationClaim { Id = 3, Name = "Super Admin" }
             };
-            _mockUserOperationClaimService
-                .Setup(service => service.GetListAsync(
-                    It.IsAny<Expression<Func<UserOperationClaim, bool>>>(),
-                    It.IsAny<Func<IQueryable<UserOperationClaim>, IOrderedQueryable<UserOperationClaim>>>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<CancellationToken>()
-                ))
+
+            _mockUserOperationClaimRepository
+                .Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<UserOperationClaim, bool>>>(), It.IsAny<Func<IQueryable<UserOperationClaim>, IOrderedQueryable<UserOperationClaim>>>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<UserOperationClaim> { existingClaim });
 
+            _mockUserOperationClaimRepository
+                .Setup(repo => repo.UpdateAsync(It.IsAny<UserOperationClaim>()))
+                .ReturnsAsync(updatedClaim);
 
             // Act
             var result = await _userOperationClaimService.UpdateAsync(updatedClaim);
@@ -150,7 +146,7 @@ namespace TechCareer.Service.Tests
         }
 
         [Fact]
-        public async Task UpdateAsync_ShouldThrowNotImplementedException_WhenClaimNotFound()
+        public async Task UpdateAsync_ShouldThrowNotFoundException_WhenClaimNotFound()
         {
             // Arrange
             var nonExistingClaim = new UserOperationClaim(999, 999)
@@ -160,21 +156,13 @@ namespace TechCareer.Service.Tests
                 OperationClaim = new OperationClaim { Id = 999, Name = "NonExisting" }
             };
 
-            _mockUserOperationClaimService
-         .Setup(service => service.GetListAsync(
-             It.IsAny<Expression<Func<UserOperationClaim, bool>>>(),
-             It.IsAny<Func<IQueryable<UserOperationClaim>, IOrderedQueryable<UserOperationClaim>>>(),
-             It.IsAny<bool>(),
-             It.IsAny<bool>(),
-             It.IsAny<bool>(),
-             It.IsAny<CancellationToken>()
-         ))
-         .ReturnsAsync(new List<UserOperationClaim>());
+            _mockUserOperationClaimRepository
+                .Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<UserOperationClaim, bool>>>(), It.IsAny<Func<IQueryable<UserOperationClaim>, IOrderedQueryable<UserOperationClaim>>>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<UserOperationClaim>());
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<NotImplementedException>(() => _userOperationClaimService.UpdateAsync(nonExistingClaim));
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _userOperationClaimService.UpdateAsync(nonExistingClaim));
             Assert.Equal("Aradığınız kategori bulunamamıştır.", exception.Message);
         }
     }
 }
-

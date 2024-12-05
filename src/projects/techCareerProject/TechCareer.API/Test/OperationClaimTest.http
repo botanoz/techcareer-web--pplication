@@ -1,0 +1,29 @@
+﻿
+#GetAllOperionClaim
+GET https://localhost:7122/api/OperationClaim?includeDeleted=false
+Accept: application/json
+
+###
+#PostAllOperionClaim
+POST https://localhost:7122/api/OperationClaim
+Accept: application/json
+
+###
+#GetAllOperionClaim
+GET https://localhost:7122/api/OperationClaim/1
+Accept: application/json
+
+###
+#PutAllOperionClaim
+PUT https://localhost:7122/api/OperationClaim/1
+Accept: application/json
+
+###
+#DeleteAllOperionClaim
+DELETE https://localhost:7122/api/OperationClaim/1?permanent=false
+Accept: application/json
+###
+#GetAllOperionClaim
+GET https://localhost:7122/api/OperationClaim/paginate?pageIndex=1&pageSize=10&includeDeleted=false
+Accept: application/json
+

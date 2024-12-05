@@ -1,0 +1,25 @@
+﻿
+#GetAllWorkPlace
+GET https://localhost:7122/api/WorkPlace
+Accept: application/json
+
+###
+#PostAllWorkPlace
+POST https://localhost:7122/api/WorkPlace
+Accept: application/json
+
+###
+#GetAllWorkPlace
+GET https://localhost:7122/api/WorkPlace/1
+Accept: application/json
+
+###
+#PutAllWorkPlace
+PUT https://localhost:7122/api/WorkPlace/1
+Accept: application/json
+
+###
+#DeleteAllWorkPlace
+DELETE https://localhost:7122/api/WorkPlace/1
+Accept: application/json
+

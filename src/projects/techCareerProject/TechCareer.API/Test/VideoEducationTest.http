@@ -1,0 +1,24 @@
+﻿
+#GetAllVideoEducation
+GET https://localhost:7122/api/VideoEducation?index=1&size=10&include=false&withDeleted=false&enableTracking=true
+Accept: application/json
+
+###
+#PostAllVideoEducation
+POST https://localhost:7122/api/VideoEducation
+Accept: application/json,
+
+###
+#GetAllVideoEducation
+GET https://localhost:7122/api/VideoEducation/1
+Accept: application/json
+###
+#PutAllVideoEducation
+PUT https://localhost:7122/api/VideoEducation/1
+Accept: application/json
+
+###
+#DeleteAllVideoEducation
+DELETE https://localhost:7122/api/VideoEducation/1?permanent=false
+Accept: application/json
+

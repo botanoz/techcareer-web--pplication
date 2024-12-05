@@ -1,0 +1,29 @@
+﻿
+#GetAllJob
+GET  
+Accept: application/json
+
+###
+#PostAllJob
+POST 
+Accept: application/json
+
+###
+#PutAllJob
+PUT 
+Accept: application/json
+
+###
+#GetAllJob
+GET 
+Accept: application/json
+
+###
+#DeleteAllJob
+DELETE 
+Accept: application/json
+###
+#GetAllJob
+GET 
+Accept: application/json
+

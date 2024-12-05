@@ -1,0 +1,24 @@
+﻿
+#GetAllYearsOfExperience
+GET  https://localhost:7122/api/Category?includeDeleted=false
+Accept: application/json
+
+###
+#PostAllYearsOfExperience
+POST https://localhost:7122/api/YearsOfExperience
+Accept: application/json
+###
+#GetAllYearsOfExperience
+GET https://localhost:7122/api/YearsOfExperience/1
+Accept: application/json
+###
+#PutAllYearsOfExperience
+PUT https://localhost:7122/api/YearsOfExperience/1
+Accept: application/json
+
+###
+#DeleteAllYearsOfExperience
+DELETE https://localhost:7122/api/YearsOfExperience/1
+Accept: application/json
+
+

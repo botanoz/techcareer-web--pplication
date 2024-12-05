@@ -1,0 +1,30 @@
+﻿
+#GetAllEvents
+GET  https://localhost:7122/api/Events?includeDeleted=false
+Accept: application/json
+
+###
+#PostAllEvents
+POST https://localhost:7122/api/Events
+Accept: application/json
+
+###
+#PutAllEvents
+PUT https://localhost:7122/api/Events
+Accept: application/json
+
+###
+#GetAllEvents
+GET https://localhost:7122/api/Events/47346df7-e43f-4896-b9b5-64711d9fafbc
+Accept: application/json
+
+###
+#DeleteAllEvents
+DELETE https://localhost:7122/api/Events/47346df7-e43f-4896-b9b5-64711d9fafbc?permanent=false
+Accept: application/json
+###
+#GetAllEvents
+GET https://localhost:7122/api/Events/paginate?pageIndex=1&pageSize=10&includeDeleted=false
+Accept: application/json
+
+

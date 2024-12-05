@@ -9,6 +9,7 @@ using TechCareer.DataAccess.Repositories.Abstracts;
 using Core.Security.Entities;
 using Xunit;
 using Microsoft.EntityFrameworkCore;
+using TechCareer.Models.Dtos.Event;
 
 namespace TechCareer.Service.Tests.UnitTests
 {
@@ -27,7 +28,7 @@ namespace TechCareer.Service.Tests.UnitTests
         public async Task AddAsync_ShouldAddEvent()
         {
             // Arrange
-            var newEvent = new Event
+            var eventAddRequestDto = new EventAddRequestDto
             {
                 Title = "Test Event",
                 Description = "Test Description",
@@ -39,16 +40,30 @@ namespace TechCareer.Service.Tests.UnitTests
                 CategoryId = 1
             };
 
+            // DTO'yu kullanarak Event entity oluşturulacak
+            var newEvent = new Event(
+                eventAddRequestDto.Title,
+                eventAddRequestDto.Description,
+                eventAddRequestDto.ImageUrl,
+                eventAddRequestDto.StartDate,
+                eventAddRequestDto.EndDate,
+                eventAddRequestDto.ApplicationDeadline,
+                eventAddRequestDto.ParticipationText,
+                eventAddRequestDto.CategoryId
+            );
+
+            // Mock: AddAsync metodunun çağrılacağı ve eventEntity döndüreceği ayarlandı
             _mockEventRepository.Setup(repo => repo.AddAsync(It.IsAny<Event>())).ReturnsAsync(newEvent);
 
             // Act
-            var result = await _eventService.AddAsync(newEvent);
+            var result = await _eventService.AddAsync(eventAddRequestDto);  // EventAddRequestDto kullanılarak metot çağrılıyor
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal("Test Event", result.Title);
             _mockEventRepository.Verify(repo => repo.AddAsync(It.IsAny<Event>()), Times.Once);
         }
+
 
         [Fact]
         public async Task GetAsync_ShouldReturnEvent_WhenEventExists()
@@ -97,22 +112,31 @@ namespace TechCareer.Service.Tests.UnitTests
                 CategoryId = 1
             };
 
+            var eventRequestDto = new EventRequestDto
+            {
+                Id = eventId
+            };
+
             _mockEventRepository.Setup(repo => repo.Query().FirstOrDefaultAsync(It.IsAny<Expression<Func<Event, bool>>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(eventToDelete);
 
             // Act
-            var result = await _eventService.DeleteAsync(eventToDelete);
+            var result = await _eventService.DeleteAsync(eventRequestDto);
 
             // Assert
             Assert.NotNull(result);
-            Assert.True(result.IsDeleted);
+            Assert.True(eventToDelete.IsDeleted);  // eventToDelete nesnesindeki IsDeleted özelliğini kontrol ediyoruz
         }
+
+
 
         [Fact]
         public async Task UpdateAsync_ShouldUpdateEvent()
         {
             // Arrange
             var eventId = Guid.NewGuid();
+
+            // Var olan Event nesnesi
             var existingEvent = new Event
             {
                 Id = eventId,
@@ -126,7 +150,8 @@ namespace TechCareer.Service.Tests.UnitTests
                 CategoryId = 1
             };
 
-            var updatedEvent = new Event
+            // Güncellenmiş Event nesnesi
+            var updatedEventDto = new EventUpdateRequestDto
             {
                 Id = eventId,
                 Title = "Updated Event",
@@ -139,16 +164,30 @@ namespace TechCareer.Service.Tests.UnitTests
                 CategoryId = 2
             };
 
-            _mockEventRepository.Setup(repo => repo.Query().FirstOrDefaultAsync(It.IsAny<Expression<Func<Event, bool>>>(), It.IsAny<CancellationToken>()))
+            // Mock: GetListAsync metodu, mevcut eventi döndürecek şekilde ayarlandı
+            _mockEventRepository.Setup(repo => repo.GetListAsync(
+                It.IsAny<Expression<Func<Event, bool>>>(), // Predicate
+                It.IsAny<Func<IQueryable<Event>, IOrderedQueryable<Event>>>(), // OrderBy
+                It.IsAny<bool>(), // Include
+                It.IsAny<bool>(), // withDeleted
+                It.IsAny<bool>(), // enableTracking
+                It.IsAny<CancellationToken>() // CancellationToken
+            )).ReturnsAsync(new List<Event> { existingEvent });
+
+            // Mock: UpdateAsync metodu
+            _mockEventRepository.Setup(repo => repo.UpdateAsync(It.IsAny<Event>()))
                 .ReturnsAsync(existingEvent);
 
             // Act
-            var result = await _eventService.UpdateAsync(updatedEvent);
+            var result = await _eventService.UpdateAsync(updatedEventDto);  // DTO kullanılarak metot çağrılıyor
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal("Updated Event", result.Title);
-            _mockEventRepository.Verify(repo => repo.AddAsync(It.IsAny<Event>()), Times.Never); // Ensure AddAsync was not called
+            _mockEventRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Event>()), Times.Once); // UpdateAsync'ın çağrıldığını doğruluyoruz
+            _mockEventRepository.Verify(repo => repo.AddAsync(It.IsAny<Event>()), Times.Never); // AddAsync'ın çağrılmadığını doğruluyoruz
         }
+
+
     }
 }
