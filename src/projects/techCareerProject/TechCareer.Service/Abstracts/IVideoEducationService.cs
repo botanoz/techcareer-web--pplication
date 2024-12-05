@@ -7,12 +7,13 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using TechCareer.Models.Dtos.VideoEducation;
 
 namespace TechCareer.Service.Abstracts
 {
     public interface IVideoEducationService
     {
-        Task<VideoEducation?> GetAsync(
+        Task<VideoEducationResponseDto?> GetAsync(
             Expression<Func<VideoEducation, bool>> predicate,
             bool include = false,
             bool withDeleted = false,
@@ -20,7 +21,7 @@ namespace TechCareer.Service.Abstracts
             CancellationToken cancellationToken = default
         );
 
-        Task<Paginate<VideoEducation>> GetPaginateAsync(
+        Task<Paginate<VideoEducationResponseDto>> GetPaginateAsync(
             Expression<Func<VideoEducation, bool>>? predicate = null,
             Func<IQueryable<VideoEducation>, IOrderedQueryable<VideoEducation>>? orderBy = null,
             bool include = false,
@@ -31,7 +32,7 @@ namespace TechCareer.Service.Abstracts
             CancellationToken cancellationToken = default
         );
 
-        Task<List<VideoEducation>> GetListAsync(
+        Task<List<VideoEducationResponseDto>> GetListAsync(
             Expression<Func<VideoEducation, bool>>? predicate = null,
             Func<IQueryable<VideoEducation>, IOrderedQueryable<VideoEducation>>? orderBy = null,
             bool include = false,
@@ -40,8 +41,8 @@ namespace TechCareer.Service.Abstracts
             CancellationToken cancellationToken = default
         );
 
-        Task<VideoEducation> AddAsync(VideoEducation videoEducation);
-        Task<VideoEducation> UpdateAsync(VideoEducation videoEducation);
-        Task<VideoEducation> DeleteAsync(VideoEducation videoEducation, bool permanent = false);
+        Task<VideoEducationResponseDto> AddAsync(VideoEducationAddRequestDto videoEducationAddRequestDto);
+        Task<VideoEducationResponseDto> UpdateAsync(VideoEducationUpdateRequestDto videoEducationUpdateRequestDto);
+        Task<VideoEducationResponseDto> DeleteAsync(VideoEducationRequestDto videoEducationRequestDto, bool permanent = false);
     }
 }

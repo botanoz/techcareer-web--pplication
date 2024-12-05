@@ -70,7 +70,10 @@ namespace TechCareer.API.Controllers
 
             var createdWorkPlace = await _workPlaceRepository.AddAsync(workPlace);
 
-            return CreatedAtAction(nameof(GetWorkPlace), new { id = createdWorkPlace.Id }, createdWorkPlace);
+            return CreatedAtAction(nameof(GetWorkPlace), new { id = createdWorkPlace.Id }, new WorkPlaceResponseDto
+            {
+                Name = workPlaceAddRequestDto.Name
+            });
         }
 
 
@@ -92,7 +95,10 @@ namespace TechCareer.API.Controllers
 
             var updatedWorkPlace = await _workPlaceRepository.UpdateAsync(existingWorkPlace);
 
-            return Ok(updatedWorkPlace);
+            return Ok(new WorkPlaceResponseDto
+            {
+                Name = updatedWorkPlace.Name
+            });
         }
 
 

@@ -66,16 +66,21 @@ namespace TechCareer.API.Controllers
                 return BadRequest("Dictionary data is required.");
             }
 
-            
+
             var dictionary = new Dictionary
             {
                 Title = dictionaryAddRequestDto.Title,
                 Description = dictionaryAddRequestDto.Description,
-           
+
             };
 
             var createdDictionary = await _dictionaryRepository.AddAsync(dictionary);
-            return CreatedAtAction(nameof(GetDictionary), new { id = createdDictionary.Id }, createdDictionary);
+            return CreatedAtAction(nameof(GetDictionary), new { id = createdDictionary.Id }, new DictionaryResponseDto
+            {
+                Title = dictionaryAddRequestDto.Title,
+                Description = dictionaryAddRequestDto.Description,
+
+            });
         }
 
 
@@ -93,13 +98,18 @@ namespace TechCareer.API.Controllers
                 return NotFound($"Dictionary with id {id} not found.");
             }
 
-            
+
             existingDictionary.Title = dictionaryUpdateRequestDto.Title ?? existingDictionary.Title;
             existingDictionary.Description = dictionaryUpdateRequestDto.Description ?? existingDictionary.Description;
-            
+
 
             var updatedDictionary = await _dictionaryRepository.UpdateAsync(existingDictionary);
-            return Ok(updatedDictionary);
+            return Ok(new DictionaryResponseDto
+            {
+                Title = updatedDictionary.Title,
+                Description = updatedDictionary.Description,
+
+            });
         }
 
 

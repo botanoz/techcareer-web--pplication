@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
 using TechCareer.Service.Abstracts;
-using Core.Security.Entities;
+using TechCareer.Models.Dtos.VideoEducation;
 
 namespace TechCareer.Api.Controllers
 {
@@ -19,97 +16,88 @@ namespace TechCareer.Api.Controllers
             _videoEducationService = videoEducationService;
         }
 
+        // Get all video educations
         [HttpGet]
-        public async Task<IActionResult> GetAll(
-            [FromQuery] int index = 0,
-            [FromQuery] int size = 10,
-            [FromQuery] bool include = false,
-            [FromQuery] bool withDeleted = false,
-            [FromQuery] bool enableTracking = true,
-            CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetAll([FromQuery] bool includeDeleted = false)
         {
-            var videoEducations = await _videoEducationService.GetPaginateAsync(
-                predicate: null,
-                orderBy: null,
-                include: include,
-                index: index,
-                size: size,
-                withDeleted: withDeleted,
-                enableTracking: enableTracking,
-                cancellationToken: cancellationToken
-            );
-
+            var videoEducations = await _videoEducationService.GetListAsync(withDeleted: includeDeleted);
             return Ok(videoEducations);
         }
 
+        // Get video education by ID
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetById(int id)
         {
-            var videoEducation = await _videoEducationService.GetAsync(
-                predicate: x => x.Id == id,
-                include: true,
-                withDeleted: false,
-                enableTracking: true,
-                cancellationToken: cancellationToken
-            );
+            var videoEducation = await _videoEducationService.GetAsync(education => education.Id == id);
 
             if (videoEducation == null)
-            {
-                return NotFound();
-            }
+                return NotFound(new { Message = "Video education not found." });
 
             return Ok(videoEducation);
         }
 
+        // Add a new video education
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] VideoEducation videoEducation)
+        public async Task<IActionResult> Add([FromBody] VideoEducationAddRequestDto videoEducationAddRequestDto)
         {
-            if (videoEducation == null)
-            {
-                return BadRequest("VideoEducation is required.");
-            }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            var createdVideoEducation = await _videoEducationService.AddAsync(videoEducation);
-
-            return CreatedAtAction(nameof(GetById), new { id = createdVideoEducation.Id }, createdVideoEducation);
+            var addedVideoEducation = await _videoEducationService.AddAsync(videoEducationAddRequestDto);
+            return CreatedAtAction(nameof(GetById), new { id = addedVideoEducation.Id }, addedVideoEducation);
         }
 
+        // Update an existing video education
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] VideoEducation videoEducation)
+        public async Task<IActionResult> Update(int id, [FromBody] VideoEducationUpdateRequestDto videoEducationUpdateRequestDto)
         {
-            if (videoEducation == null || videoEducation.Id != id)
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Ensure the correct ID is passed
+            videoEducationUpdateRequestDto.Id = id;
+
+            try
             {
-                return BadRequest("Invalid video education data.");
+                var updatedVideoEducation = await _videoEducationService.UpdateAsync(videoEducationUpdateRequestDto);
+                return Ok(updatedVideoEducation);
             }
-
-            var updatedVideoEducation = await _videoEducationService.UpdateAsync(videoEducation);
-
-            if (updatedVideoEducation == null)
+            catch (ApplicationException ex)
             {
-                return NotFound();
+                return NotFound(new { Message = ex.Message });
             }
-
-            return Ok(updatedVideoEducation);
         }
 
+        // Delete a video education
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id, [FromQuery] bool permanent = false)
         {
-            var videoEducation = await _videoEducationService.GetAsync(
-                predicate: x => x.Id == id,
-                include: true,
-                withDeleted: false,
-                enableTracking: true
-            );
-
-            if (videoEducation == null)
+            try
             {
-                return NotFound();
+                var deletedVideoEducation = await _videoEducationService.DeleteAsync(
+                    new VideoEducationRequestDto { Id = id }, permanent);
+
+                return Ok(deletedVideoEducation);
             }
+            catch (ApplicationException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+        }
 
-            var deletedVideoEducation = await _videoEducationService.DeleteAsync(videoEducation, permanent);
+        // Get paginated video educations
+        [HttpGet("paginate")]
+        public async Task<IActionResult> GetPaginated(
+            [FromQuery] int pageIndex = 0,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] bool includeDeleted = false)
+        {
+            var paginatedVideoEducations = await _videoEducationService.GetPaginateAsync(
+                index: pageIndex,
+                size: pageSize,
+                withDeleted: includeDeleted);
 
-            return Ok(deletedVideoEducation);
+            return Ok(paginatedVideoEducations);
         }
     }
 }

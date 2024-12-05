@@ -12,7 +12,11 @@ namespace TechCareer.Service.Abstracts
 {
     public interface ICategoryService
     {
-        Task<CategoryResponseDto?> GetAsync(Expression<Func<Category, bool>> predicate, bool withDeleted = false, CancellationToken cancellationToken = default);
+        Task<CategoryResponseDto?> GetAsync(
+            Expression<Func<Category, bool>> predicate, 
+            bool withDeleted = false, 
+            CancellationToken cancellationToken = default
+            );
 
         Task<Paginate<CategoryResponseDto?>> GetPaginateAsync
             (Expression<Func<Category, bool>>? predicate = null,

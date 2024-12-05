@@ -12,16 +12,15 @@ namespace TechCareer.Service.Abstracts
 {
     public interface IJobService
     {
-        Task<Job?> GetAsync(
+        Task<JobResponseDto?> GetAsync(
         Expression<Func<Job, bool>> predicate,
         bool include = false,
         bool withDeleted = false,
         bool enableTracking = true,
         CancellationToken cancellationToken = default
-    );
+        );
 
-
-        Task<Paginate<Job>> GetPaginateAsync(Expression<Func<Job, bool>>? predicate = null,
+        Task<Paginate<JobResponseDto>> GetPaginateAsync(Expression<Func<Job, bool>>? predicate = null,
             Func<IQueryable<Job>, IOrderedQueryable<Job>>? orderBy = null,
             bool include = false,
             int index = 0,
@@ -30,18 +29,17 @@ namespace TechCareer.Service.Abstracts
             bool enableTracking = true,
             CancellationToken cancellationToken = default);
 
-
-        Task<List<Job>> GetListAsync(Expression<Func<Job, bool>>? predicate = null,
+        Task<List<JobResponseDto>> GetListAsync(Expression<Func<Job, bool>>? predicate = null,
             Func<IQueryable<Job>, IOrderedQueryable<Job>>? orderBy = null,
             bool include = false,
             bool withDeleted = false,
             bool enableTracking = true,
             CancellationToken cancellationToken = default);
 
+        Task<JobResponseDto> AddAsync(JobAddRequestDto jobAddRequestDto);
+        Task<JobResponseDto> UpdateAsync(JobUpdateRequestDto jobUpdateRequestDto);
+        Task<JobResponseDto> DeleteAsync(JobRequestDto jobRequestDto, bool permanent = false);
 
-        Task<Job> AddAsync(JobAddRequestDto jobAddRequestDto);
-        Task<Job> UpdateAsync(JobUpdateRequestDto jobUpdateRequestDto);
-        Task<Job> DeleteAsync(Job job, bool permanent = false);
 
     }
 }

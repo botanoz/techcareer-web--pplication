@@ -2,4 +2,5 @@
 
 public class OperationClaimRequestDto
 {
+    public int Id { get; set; }
 }

@@ -31,7 +31,8 @@ namespace TechCareer.API.Controllers
             {
                 Name = company.Name,
                 Location = company.Location,
-                Description = company.Description
+                Description = company.Description,
+                ImageUrl = company.ImageUrl
             }).ToList();
 
             return Ok(companyDtos);
@@ -52,7 +53,8 @@ namespace TechCareer.API.Controllers
             {
                 Name = company.Name,
                 Location = company.Location,
-                Description = company.Description
+                Description = company.Description,
+                ImageUrl = company.ImageUrl
             };
 
             return Ok(companyDto);
@@ -73,12 +75,19 @@ namespace TechCareer.API.Controllers
                 Name = companyAddRequestDto.Name,
                 Location = companyAddRequestDto.Location,
                 Description= companyAddRequestDto.Description,
+                ImageUrl = companyAddRequestDto.ImageUrl
                
             };
 
             var createdCompany = await _companyRepository.AddAsync(company);
 
-            return CreatedAtAction(nameof(GetCompany), new { id = createdCompany.Id }, createdCompany);
+            return CreatedAtAction(nameof(GetCompany), new { id = createdCompany.Id }, new CompanyResponseDto
+            {
+                Name = companyAddRequestDto.Name,
+                Location = companyAddRequestDto.Location,
+                Description = companyAddRequestDto.Description,
+
+            });
         }
 
         [HttpPut("{id}")]
@@ -98,11 +107,19 @@ namespace TechCareer.API.Controllers
             
             existingCompany.Name = companyUpdateRequestDto.Name ?? existingCompany.Name;
             existingCompany.Location = companyUpdateRequestDto.Location ?? existingCompany.Location;
-            
+            existingCompany.Description = companyUpdateRequestDto.Description ?? existingCompany.Description;
+            existingCompany.ImageUrl = companyUpdateRequestDto.ImageUrl ?? existingCompany.ImageUrl;
+
 
             var updatedCompany = await _companyRepository.UpdateAsync(existingCompany);
 
-            return Ok(updatedCompany);
+            return Ok(new CompanyResponseDto
+            {
+                Name = updatedCompany.Name,
+                Location = updatedCompany.Location,
+                Description = updatedCompany.Description,
+
+            });
         }
 
 
@@ -119,7 +136,8 @@ namespace TechCareer.API.Controllers
             {
                 Name = company.Name,
                 Location = company.Location,
-                Description = company.Description
+                Description = company.Description,
+                ImageUrl= company.ImageUrl,
             };
 
             await _companyRepository.DeleteAsync(company);

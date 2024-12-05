@@ -13,16 +13,14 @@ namespace TechCareer.Service.Abstracts
 
     public interface IInstructorService
     {
-        Task<Instructor?> GetAsync(
-    Expression<Func<Instructor, bool>> predicate,
-    bool include = false,
-    bool withDeleted = false,
-    bool enableTracking = true,
-    CancellationToken cancellationToken = default
-);
+        Task<InstructorResponseDto?> GetAsync(
+            Expression<Func<Instructor, bool>> predicate,
+            bool include = false,
+            bool withDeleted = false,
+            bool enableTracking = true,
+            CancellationToken cancellationToken = default);
 
-
-        Task<Paginate<Instructor>> GetPaginateAsync(Expression<Func<Instructor, bool>>? predicate = null,
+        Task<Paginate<InstructorResponseDto>> GetPaginateAsync(Expression<Func<Instructor, bool>>? predicate = null,
             Func<IQueryable<Instructor>, IOrderedQueryable<Instructor>>? orderBy = null,
             bool include = false,
             int index = 0,
@@ -31,19 +29,17 @@ namespace TechCareer.Service.Abstracts
             bool enableTracking = true,
             CancellationToken cancellationToken = default);
 
-
-        Task<List<Instructor>> GetListAsync(Expression<Func<Instructor, bool>>? predicate = null,
+        Task<List<InstructorResponseDto>> GetListAsync(Expression<Func<Instructor, bool>>? predicate = null,
             Func<IQueryable<Instructor>, IOrderedQueryable<Instructor>>? orderBy = null,
             bool include = false,
             bool withDeleted = false,
             bool enableTracking = true,
             CancellationToken cancellationToken = default);
 
-
-        Task<Instructor> AddAsync(Instructor Instructor);
-        Task<Instructor> UpdateAsync(Instructor Instructor);
-        Task<Instructor> DeleteAsync(InstructorDeleteRequestDto deleteRequestDto);
-        Task<Instructor?> GetByIdAsync(Guid id);
+        Task<InstructorResponseDto> AddAsync(InstructorAddRequestDto instructorAddRequestDto);
+        Task<InstructorResponseDto> UpdateAsync(InstructorUpdateRequestDto instructorUpdateRequestDto);
+        Task<InstructorResponseDto> DeleteAsync(InstructorRequestDto instructorRequestDto, bool permanent = false);
+        Task<InstructorResponseDto?> FindInstructorAsync(InstructorRequestDto instructorRequestDto);
 
     }
 }
