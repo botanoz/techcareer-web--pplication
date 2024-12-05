@@ -84,9 +84,9 @@ namespace TechCareer.Service.Concretes
         }
 
         // Get a single category with optional filters
-        public async Task<CategoryResponseDto?> GetAsync(Expression<Func<Category, bool>> predicate, CancellationToken cancellationToken = default)
+        public async Task<CategoryResponseDto?> GetAsync(Expression<Func<Category, bool>> predicate, bool withDeleted = false, CancellationToken cancellationToken = default)
         {
-            var category = await _categoryRepository.GetAsync(predicate, withDeleted: true);
+            var category = await _categoryRepository.GetAsync(predicate, withDeleted: withDeleted);
 
             if (category == null)
                 return null;
@@ -98,38 +98,29 @@ namespace TechCareer.Service.Concretes
             };
         }
 
-        public Task<CategoryResponseDto?> GetAsync(Expression<Func<Category, bool>> predicate, CategoryRequestDto categoryRequestDto, bool include = false, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
         // Get all categories with optional filters
         public async Task<List<CategoryResponseDto>> GetListAsync(
-     Expression<Func<Category, bool>>? predicate = null,
-     bool include = false,
-     bool withDeleted = false,
-     bool enableTracking = true,
-     CancellationToken cancellationToken = default)
+            Expression<Func<Category, bool>>? predicate = null,
+            bool include = false,
+            bool withDeleted = false,
+            bool enableTracking = true,
+            CancellationToken cancellationToken = default)
         {
-            // Repository'den tüm kategoriler alınıyor
             var categories = await _categoryRepository.GetListAsync(
                 predicate,
                 enableTracking: enableTracking,
-                withDeleted: true); // Her zaman tüm kayıtları getir (silinmiş dahil)
+                withDeleted: true);
 
-            // Silinmiş kayıtlara göre filtreleme
             var filteredCategories = withDeleted
-                ? categories // Silinmiş ve silinmemiş tüm kategoriler
-                : categories.Where(category => !category.IsDeleted).ToList(); // Sadece silinmemiş kategoriler
+                ? categories
+                : categories.Where(category => !category.IsDeleted).ToList();
 
-            // DTO'ya dönüştürme
             return filteredCategories.Select(category => new CategoryResponseDto
             {
                 Id = category.Id,
                 Name = category.Name
             }).ToList();
         }
-
 
         // Get paginated list of categories
         public async Task<Paginate<CategoryResponseDto>> GetPaginateAsync(
@@ -154,11 +145,6 @@ namespace TechCareer.Service.Concretes
                 TotalItems = paginateResult.TotalItems,
                 TotalPages = paginateResult.TotalPages
             };
-        }
-
-        public Task<Paginate<CategoryResponseDto?>> GetPaginateAsync(Expression<Func<Category, bool>>? predicate = null, bool include = false, int index = 0, int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cansellationToken = default)
-        {
-            throw new NotImplementedException();
         }
 
         // Update a category
