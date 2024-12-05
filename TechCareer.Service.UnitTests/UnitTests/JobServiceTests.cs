@@ -21,12 +21,12 @@ namespace TechCareer.Service.Tests.UnitTests
         public JobServiceTests()
         {
             _mockJobRepository = new Mock<IJobRepository>();
-            _jobService = new JobService(_mockJobRepository.Object);  
+            _jobService = new JobService(_mockJobRepository.Object);
         }
 
         [Fact]
         public async Task AddAsync_ShouldReturnAddedJob()
-        {   
+        {
             var jobAddRequestDto = new JobAddRequestDto
             {
                 Title = "Software Developer",
@@ -59,12 +59,13 @@ namespace TechCareer.Service.Tests.UnitTests
             var result = await _jobService.AddAsync(jobAddRequestDto);
 
             Assert.NotNull(result);
-            Assert.Equal(expectedJob.Title, result.Title); 
-            Assert.Equal(expectedJob.TypeOfWork, result.TypeOfWork); 
+            Assert.Equal(expectedJob.Title, result.Title);
+            Assert.Equal(expectedJob.TypeOfWork, result.TypeOfWork);
             Assert.Equal(expectedJob.YearsOfExperience, result.YearsOfExperience);
 
             _mockJobRepository.Verify(service => service.AddAsync(It.IsAny<Job>()), Times.Once);
         }
+
         [Fact]
         public async Task GetAsync_ShouldReturnJob()
         {
@@ -81,17 +82,14 @@ namespace TechCareer.Service.Tests.UnitTests
                 Skills = "C#, SQL, .NET",
                 CompanyId = 1
             };
-                            _mockJobRepository
-                .Setup(service => service.GetAsync(
-                It.IsAny<Expression<Func<Job, bool>>>(),
-                false,                                  
-                false,                              
-                true,                                   
-                It.IsAny<CancellationToken>()         
-                ))
+
+            _mockJobRepository
+                .Setup(service => service.GetAsync(It.IsAny<Expression<Func<Job, bool>>>(),
+                    false, false, true, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(job);
 
             var result = await _jobService.GetAsync(x => x.Id == 1);
+
             Assert.NotNull(result);
             Assert.Equal("Software Developer", result.Title);
         }
@@ -99,7 +97,6 @@ namespace TechCareer.Service.Tests.UnitTests
         [Fact]
         public async Task GetListAsync_ShouldReturnJobList()
         {
-  
             var jobs = new List<Job>
             {
                 new Job { Id = 1, Title = "Software Developer" },
@@ -107,16 +104,12 @@ namespace TechCareer.Service.Tests.UnitTests
             };
 
             _mockJobRepository
-         .Setup(service => service.GetListAsync(
-             It.IsAny<Expression<Func<Job, bool>>>(), 
-             null,                                  
-             false,                                
-             false,                                 
-             true,                                  
-             It.IsAny<CancellationToken>()         
-         ))
-         .ReturnsAsync(jobs);    
+                .Setup(service => service.GetListAsync(It.IsAny<Expression<Func<Job, bool>>>(),
+                    null, false, false, true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(jobs);
+
             var result = await _jobService.GetListAsync(x => x.TypeOfWork == 1);
+
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);
         }
@@ -130,17 +123,14 @@ namespace TechCareer.Service.Tests.UnitTests
                 new Job { Id = 2, Title = "Product Manager" },
                 new Job { Id = 3, Title = "Data Analyst" }
             };
-                        _mockJobRepository
-             .Setup(service => service.GetListAsync(
-                 null,                                    
-                 null,                                   
-                 false,                                
-                 false,                                   
-                 true,                                    
-                 It.IsAny<CancellationToken>()          
-             ))
-             .ReturnsAsync(jobs);
+
+            _mockJobRepository
+                .Setup(service => service.GetListAsync(It.IsAny<Expression<Func<Job, bool>>>(),
+                    null, false, false, true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(jobs);
+
             var result = await _jobService.GetPaginateAsync(index: 0, size: 2);
+
             Assert.NotNull(result);
             Assert.Equal(3, result.TotalItems);
             Assert.Equal(2, result.Items.Count);
@@ -163,18 +153,14 @@ namespace TechCareer.Service.Tests.UnitTests
                 Skills = "C#, SQL, .NET",
                 CompanyId = 1
             };
-                    _mockJobRepository
-            .Setup(service => service.GetListAsync(
-                It.IsAny<Expression<Func<Job, bool>>>(),
-                null,                                   
-                false,                                  
-                false,                                 
-                true,                                   
-                It.IsAny<CancellationToken>()         
-            ))
-            .ReturnsAsync(new List<Job> { job });
+
+            _mockJobRepository
+                .Setup(service => service.GetListAsync(It.IsAny<Expression<Func<Job, bool>>>(),
+                    null, false, false, true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<Job> { job });
 
             var result = await _jobService.DeleteAsync(job);
+
             Assert.True(result.IsDeleted);
         }
 
@@ -185,7 +171,7 @@ namespace TechCareer.Service.Tests.UnitTests
             {
                 Id = 1,
                 Title = "Senior Software Developer",
-                Description = "Lead development projects", 
+                Description = "Lead development projects",
                 TypeOfWork = 2,
                 YearsOfExperience = 5,
                 WorkPlace = 3,
@@ -231,6 +217,5 @@ namespace TechCareer.Service.Tests.UnitTests
             _mockJobRepository.Verify(repo => repo.GetAsync(It.IsAny<Expression<Func<Job, bool>>>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
             _mockJobRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Job>()), Times.Once);
         }
-
     }
 }

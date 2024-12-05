@@ -85,13 +85,11 @@ namespace TechCareer.Service.Concretes
             if (updatedUserOperationClaim != null)
             {
                 updatedUserOperationClaim = userOperationClaim;
-
                 return updatedUserOperationClaim;
             }
-
             else
             {
-                return NullReferenceException("Aradığınız kategori bulunamamıştır.");
+                throw new InvalidOperationException("Aradığınız kategori bulunamamıştır."); // Doğru hata fırlatma
             }
         }
 
