@@ -19,7 +19,6 @@ namespace TechCareer.Service.Concretes
             _logger = logger;
         }
 
-        // Get a single operation claim with optional filters
         public async Task<OperationClaimResponseDto?> GetAsync(
             Expression<Func<OperationClaim, bool>> predicate,
             bool include = false,
@@ -48,7 +47,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Get paginated list of operation claims
         public async Task<Paginate<OperationClaimResponseDto>> GetPaginateAsync(
             Expression<Func<OperationClaim, bool>>? predicate = null,
             Func<IQueryable<OperationClaim>, IOrderedQueryable<OperationClaim>>? orderBy = null,
@@ -84,7 +82,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Get list of operation claims
         public async Task<List<OperationClaimResponseDto>> GetListAsync(
             Expression<Func<OperationClaim, bool>>? predicate = null,
             Func<IQueryable<OperationClaim>, IOrderedQueryable<OperationClaim>>? orderBy = null,
@@ -111,23 +108,19 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Add a new operation claim
         public async Task<OperationClaimResponseDto> AddAsync(OperationClaimAddRequestDto operationClaimAddRequestDto)
         {
             try
             {
-                // Yeni bir OperationClaim entity oluştur
                 var operationClaim = new OperationClaim
                 {
                     Name = operationClaimAddRequestDto.Name
                 };
 
-                // Veritabanına kaydet
                 var addedOperationClaim = await _operationClaimRepository.AddAsync(operationClaim);
 
                 _logger.Info("Info log: OperationClaim added.");
 
-                // Cevap DTO'su oluştur ve geri döndür
                 return new OperationClaimResponseDto
                 {
                     Id = addedOperationClaim.Id,
@@ -142,7 +135,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Update an existing operation claim
         public async Task<OperationClaimResponseDto> UpdateAsync(OperationClaimUpdateRequestDto operationClaimUpdateRequestDto)
         {
             try
@@ -152,7 +144,6 @@ namespace TechCareer.Service.Concretes
                 if (operationClaim == null)
                     throw new ApplicationException("Operation claim not found.");
 
-                // Update fields
                 operationClaim.Name = operationClaimUpdateRequestDto.Name;
 
                 var updatedOperationClaim = await _operationClaimRepository.UpdateAsync(operationClaim);
@@ -173,7 +164,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Delete an operation claim
         public async Task<OperationClaimResponseDto> DeleteAsync(OperationClaimRequestDto operationClaimRequestDto, bool permanent = false)
         {
             try

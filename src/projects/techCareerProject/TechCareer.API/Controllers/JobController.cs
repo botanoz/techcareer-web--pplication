@@ -18,7 +18,6 @@ namespace TechCareer.API.Controllers
             _jobService = jobService;
         }
 
-        // Get all jobs
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] bool includeDeleted = false)
         {
@@ -27,7 +26,6 @@ namespace TechCareer.API.Controllers
             return Ok(jobs);
         }
 
-        // Get job by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -35,7 +33,6 @@ namespace TechCareer.API.Controllers
             return Ok(job);
         }
 
-        // Add a new job
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] JobAddRequestDto jobAddRequestDto)
         {
@@ -43,7 +40,6 @@ namespace TechCareer.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = addedJob.Id }, addedJob);
         }
 
-        // Update an existing job
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] JobUpdateRequestDto jobUpdateRequestDto)
         {
@@ -53,7 +49,6 @@ namespace TechCareer.API.Controllers
             return Ok(updatedJob);
         }
 
-        // Delete a job
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id, [FromQuery] bool permanent = false)
         {
@@ -64,7 +59,6 @@ namespace TechCareer.API.Controllers
 
         }
 
-        // Get paginated jobs
         [HttpGet("paginate")]
         public async Task<IActionResult> GetPaginated(
             [FromQuery] int pageIndex = 0,

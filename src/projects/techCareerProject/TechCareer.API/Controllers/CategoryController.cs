@@ -16,7 +16,6 @@ namespace TechCareer.API.Controllers
             _categoryService = categoryService;
         }
 
-        // Get all categories
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] bool includeDeleted = false)
         {
@@ -24,7 +23,6 @@ namespace TechCareer.API.Controllers
             return Ok(categories);
         }
 
-        // Get category by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -33,7 +31,6 @@ namespace TechCareer.API.Controllers
             return Ok(category);
         }
 
-        // Add a new category
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] CategoryAddRequestDto categoryAddRequestDto)
         {
@@ -41,7 +38,6 @@ namespace TechCareer.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = addedCategory.Id }, addedCategory);
         }
 
-        // Update an existing category
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] CategoryUpdateRequestDto categoryUpdateRequestDto)
         {
@@ -51,7 +47,6 @@ namespace TechCareer.API.Controllers
             return Ok(updatedCategory);
         }
 
-        // Delete a category
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id, [FromQuery] bool permanent = false)
         {
@@ -63,7 +58,6 @@ namespace TechCareer.API.Controllers
 
         }
 
-        // Get paginated categories
         [HttpGet("paginate")]
         public async Task<IActionResult> GetPaginated(
             [FromQuery] int pageIndex = 0,

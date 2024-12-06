@@ -26,7 +26,6 @@ namespace TechCareer.Service.Concretes
             _logger = logger;
         }
 
-        // Get a single job with optional filters
         public async Task<JobResponseDto?> GetAsync(
             Expression<Func<Job, bool>> predicate,
             bool include = false,
@@ -63,7 +62,6 @@ namespace TechCareer.Service.Concretes
             }
         }
 
-        // Get paginated list of jobs
         public async Task<Paginate<JobResponseDto>> GetPaginateAsync(
             Expression<Func<Job, bool>>? predicate = null,
             Func<IQueryable<Job>, IOrderedQueryable<Job>>? orderBy = null,
@@ -107,7 +105,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Get list of jobs
         public async Task<List<JobResponseDto>> GetListAsync(
             Expression<Func<Job, bool>>? predicate = null,
             Func<IQueryable<Job>, IOrderedQueryable<Job>>? orderBy = null,
@@ -144,12 +141,10 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Add a new job
         public async Task<JobResponseDto> AddAsync(JobAddRequestDto jobAddRequestDto)
         {
             try
             {
-                // Yeni bir Job entity oluştur
                 var job = new Job
                 {
                     Title = jobAddRequestDto.Title,
@@ -163,12 +158,10 @@ namespace TechCareer.Service.Concretes
                     CompanyId = jobAddRequestDto.CompanyId
                 };
 
-                // Veritabanına kaydet
                 var addedJob = await _jobRepository.AddAsync(job);
 
                 _logger.Info("Info log: Job added.");
 
-                // Cevap DTO'su oluştur ve geri döndür
                 return new JobResponseDto
                 {
                     Id = addedJob.Id,
@@ -192,7 +185,6 @@ namespace TechCareer.Service.Concretes
         }
 
 
-        // Update an existing job
         public async Task<JobResponseDto> UpdateAsync(JobUpdateRequestDto jobUpdateRequestDto)
         {
             try
@@ -205,7 +197,6 @@ namespace TechCareer.Service.Concretes
                     throw new ApplicationException("Job not found.");
                 }                 
 
-                // Update fields
                 job.Title = jobUpdateRequestDto.Title;
                 job.TypeOfWork = jobUpdateRequestDto.TypeOfWork;
                 job.YearsOfExperience = jobUpdateRequestDto.YearsOfExperience;
