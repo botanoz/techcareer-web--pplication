@@ -10,23 +10,28 @@ using Xunit;
 using TechCareer.Service.Concretes;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using TechCareer.Models.Dtos.Job;
+using Core.Persistence.Repositories;
+using Core.CrossCuttingConcerns.Serilog;
+using Core.Persistence.Extensions;
 
 namespace TechCareer.Service.Tests.UnitTests
 {
     public class JobServiceTests
     {
         private readonly Mock<IJobRepository> _mockJobRepository;
+        private readonly LoggerServiceBase _mockLogger;
         private readonly JobService _jobService;
 
         public JobServiceTests()
         {
             _mockJobRepository = new Mock<IJobRepository>();
-            _jobService = new JobService(_mockJobRepository.Object);
+            _mockLogger = new Mock<LoggerServiceBase>().Object;  // Mock Logger if needed
+            _jobService = new JobService(_mockJobRepository.Object, _mockLogger);
         }
-
         [Fact]
         public async Task AddAsync_ShouldReturnAddedJob()
         {
+            // Arrange: JobAddRequestDto nesnesini oluşturuyoruz.
             var jobAddRequestDto = new JobAddRequestDto
             {
                 Title = "Software Developer",
@@ -40,6 +45,7 @@ namespace TechCareer.Service.Tests.UnitTests
                 CompanyId = 1
             };
 
+            // Expected job entity (Job) nesnesini oluşturuyoruz.
             var expectedJob = new Job
             {
                 Title = jobAddRequestDto.Title,
@@ -53,18 +59,29 @@ namespace TechCareer.Service.Tests.UnitTests
                 CompanyId = jobAddRequestDto.CompanyId
             };
 
-            _mockJobRepository.Setup(service => service.AddAsync(It.IsAny<Job>()))
-                .ReturnsAsync(expectedJob);
+            // IJobRepository mock'ını kuruyoruz. AddAsync metodunun expectedJob'u döndürmesini sağlıyoruz.
+            _mockJobRepository.Setup(repo => repo.AddAsync(It.IsAny<Job>())).ReturnsAsync(expectedJob);
 
-            var result = await _jobService.AddAsync(jobAddRequestDto);
+            // LoggerServiceBase mock'ını kuruyoruz. (İlgili log işlemleri burada yapılacak.)
+            var mockLogger = new Mock<LoggerServiceBase>();
 
+            // JobService'i başlatıyoruz.
+            var jobService = new JobService(_mockJobRepository.Object, mockLogger.Object);
+
+            // Act: JobService'den AddAsync metodunu çağırıyoruz.
+            var result = await jobService.AddAsync(jobAddRequestDto);
+
+            // Assert: Sonucun beklenen değerle uyuşup uyuşmadığını kontrol ediyoruz.
             Assert.NotNull(result);
             Assert.Equal(expectedJob.Title, result.Title);
             Assert.Equal(expectedJob.TypeOfWork, result.TypeOfWork);
             Assert.Equal(expectedJob.YearsOfExperience, result.YearsOfExperience);
 
-            _mockJobRepository.Verify(service => service.AddAsync(It.IsAny<Job>()), Times.Once);
+            // Verify: AddAsync metodunun bir kez çağrıldığını doğruluyoruz.
+            _mockJobRepository.Verify(repo => repo.AddAsync(It.IsAny<Job>()), Times.Once);
         }
+
+
 
         [Fact]
         public async Task GetAsync_ShouldReturnJob()
@@ -83,9 +100,8 @@ namespace TechCareer.Service.Tests.UnitTests
                 CompanyId = 1
             };
 
-            _mockJobRepository
-                .Setup(service => service.GetAsync(It.IsAny<Expression<Func<Job, bool>>>(),
-                    false, false, true, It.IsAny<CancellationToken>()))
+            _mockJobRepository.Setup(repo => repo.GetAsync(It.IsAny<Expression<Func<Job, bool>>>(),
+                    true, false, true, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(job);
 
             var result = await _jobService.GetAsync(x => x.Id == 1);
@@ -103,9 +119,8 @@ namespace TechCareer.Service.Tests.UnitTests
                 new Job { Id = 2, Title = "Product Manager" }
             };
 
-            _mockJobRepository
-                .Setup(service => service.GetListAsync(It.IsAny<Expression<Func<Job, bool>>>(),
-                    null, false, false, true, It.IsAny<CancellationToken>()))
+            _mockJobRepository.Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<Job, bool>>>(),
+                    null, true, false, true, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(jobs);
 
             var result = await _jobService.GetListAsync(x => x.TypeOfWork == 1);
@@ -124,10 +139,9 @@ namespace TechCareer.Service.Tests.UnitTests
                 new Job { Id = 3, Title = "Data Analyst" }
             };
 
-            _mockJobRepository
-                .Setup(service => service.GetListAsync(It.IsAny<Expression<Func<Job, bool>>>(),
-                    null, false, false, true, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(jobs);
+            _mockJobRepository.Setup(repo => repo.GetPaginateAsync(It.IsAny<Expression<Func<Job, bool>>>(),
+                    It.IsAny<Func<IQueryable<Job>, IOrderedQueryable<Job>>>(), true, 0, 2, false, true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Paginate<Job> { TotalItems = 3, Items = jobs.Take(2).ToList() });
 
             var result = await _jobService.GetPaginateAsync(index: 0, size: 2);
 
@@ -135,6 +149,7 @@ namespace TechCareer.Service.Tests.UnitTests
             Assert.Equal(3, result.TotalItems);
             Assert.Equal(2, result.Items.Count);
         }
+
         [Fact]
         public async Task DeleteAsync_ShouldMarkAsDeleted_WhenJobIsFound()
         {
@@ -142,7 +157,7 @@ namespace TechCareer.Service.Tests.UnitTests
             {
                 Id = 2,
                 Title = "Software Developer",
-                IsDeleted = false,  // Başlangıçta silinmemiş
+                IsDeleted = false,
                 TypeOfWork = 1,
                 YearsOfExperience = 3,
                 WorkPlace = 2,
@@ -159,24 +174,19 @@ namespace TechCareer.Service.Tests.UnitTests
                 CompanyId = job.CompanyId
             };
 
-            // Mock: Repository'yi GetListAsync metodunu kullanacak şekilde ayarlıyoruz
-            _mockJobRepository
-                .Setup(service => service.GetListAsync(It.IsAny<Expression<Func<Job, bool>>>(),
-                    null, false, false, true, It.IsAny<CancellationToken>()))
+            _mockJobRepository.Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<Job, bool>>>(),
+                    null, true, false, true, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<Job> { job });
 
-            // Mock: UpdateAsync metodunu çağıracak şekilde ayarlıyoruz (IsDeleted değerini true yapacağız)
-            _mockJobRepository
-                .Setup(service => service.UpdateAsync(It.Is<Job>(j => j.Id == job.Id && j.IsDeleted == true)))
+            _mockJobRepository.Setup(repo => repo.UpdateAsync(It.Is<Job>(j => j.Id == job.Id && j.IsDeleted == true)))
                 .ReturnsAsync(job);
 
-            // Act: DeleteAsync metodunu çağırıyoruz
             var result = await _jobService.DeleteAsync(jobRequestDto);
 
-            // Assert: Job nesnesinin IsDeleted değerinin true olduğunu kontrol ediyoruz
-            Assert.True(job.IsDeleted);  // Job nesnesinin silindiğini kontrol ediyoruz
-        }
+            Assert.True(job.IsDeleted);
 
+            _mockJobRepository.Verify(repo => repo.UpdateAsync(It.Is<Job>(j => j.Id == job.Id && j.IsDeleted == true)), Times.Once);
+        }
 
         [Fact]
         public async Task UpdateAsync_ShouldReturnUpdatedJob()
@@ -209,11 +219,12 @@ namespace TechCareer.Service.Tests.UnitTests
                 CompanyId = 1
             };
 
-            _mockJobRepository.Setup(repo => repo.GetAsync(It.IsAny<Expression<Func<Job, bool>>>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                              .ReturnsAsync(existingJob);
+            _mockJobRepository.Setup(repo => repo.GetAsync(It.IsAny<Expression<Func<Job, bool>>>(),
+                    true, false, true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(existingJob);
 
             _mockJobRepository.Setup(repo => repo.UpdateAsync(It.IsAny<Job>()))
-                              .ReturnsAsync(existingJob);
+                .ReturnsAsync(existingJob);
 
             var result = await _jobService.UpdateAsync(jobUpdateRequestDto);
 

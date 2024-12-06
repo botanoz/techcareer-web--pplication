@@ -165,28 +165,32 @@ namespace TechCareer.Service.Tests.UnitTests
         {
             // Arrange
             var operationClaims = new List<OperationClaim>
-            {
-                new OperationClaim { Id = 1, Name = "Admin" },
-                new OperationClaim { Id = 2, Name = "User" }
-            };
+    {
+        new OperationClaim { Id = 1, Name = "Admin" },
+        new OperationClaim { Id = 2, Name = "User" }
+    };
 
             _mockOperationClaimRepository.Setup(repo => repo.GetListAsync(
                     It.IsAny<Expression<Func<OperationClaim, bool>>>(),
-                    null,
-                    true,
-                    false,
-                    true,
-                    It.IsAny<CancellationToken>()
+                    null,  // Sort expression: null, no sorting
+                    true,  // withDeleted: true
+                    false, // enableTracking: false
+                    true,  // include: true
+                    It.IsAny<CancellationToken>()  // Cancellation token
                 ))
-                .ReturnsAsync(operationClaims);
+                .ReturnsAsync(operationClaims);  // Return mocked data
 
             // Act
             var result = await _operationClaimService.GetPaginateAsync(index: 0, size: 2);
 
             // Assert
-            result.Items.Should().BeEquivalentTo(operationClaims.Select(c => new OperationClaimResponseDto { Id = c.Id, Name = c.Name }).ToList());
-            result.TotalItems.Should().Be(2);
-            result.TotalPages.Should().Be(1);
+            Assert.NotNull(result);  // Ensure result is not null
+            result.Items.Should().BeEquivalentTo(
+                operationClaims.Select(c => new OperationClaimResponseDto { Id = c.Id, Name = c.Name }).ToList()
+            );
+            result.TotalItems.Should().Be(2);  // Total items should be 2
+            result.TotalPages.Should().Be(1);  // Total pages should be 1
         }
+
     }
 }

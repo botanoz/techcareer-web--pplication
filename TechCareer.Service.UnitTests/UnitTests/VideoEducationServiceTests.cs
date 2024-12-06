@@ -63,10 +63,8 @@ namespace TechCareer.Tests.UnitTests
             Assert.NotNull(result);
             Assert.Equal("C# Tutorial", result.Title);
         }
-
-
         [Fact]
-        public async Task DeleteAsync_ShouldMarkAsDeleted()
+        public async Task DeleteAsync_ShouldMarkAsDeleted_WhenNotPermanent()
         {
             // Arrange
             var videoEducation = new VideoEducation
@@ -80,23 +78,31 @@ namespace TechCareer.Tests.UnitTests
                 ImageUrl = "image_url",
                 InstructorId = Guid.NewGuid(),
                 ProgrammingLanguage = "JavaScript",
-                IsDeleted = false // Assuming your domain model has IsDeleted
+                IsDeleted = false // Initially not deleted
             };
 
+            // Mock GetAsync to return the videoEducation entity
             _mockVideoEducationRepository
-                .Setup(repository => repository.DeleteAsync(It.IsAny<VideoEducation>(), It.IsAny<bool>()))
+                .Setup(repository => repository.GetAsync(It.IsAny<Expression<Func<VideoEducation, bool>>>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(videoEducation);
+
+            // Mock DeleteAsync to simulate marking the entity as deleted (without permanent delete)
+            _mockVideoEducationRepository
+                .Setup(repository => repository.DeleteAsync(It.IsAny<VideoEducation>(), false)) // Passing 'false' for permanent
                 .ReturnsAsync(new VideoEducation { Id = 1, IsDeleted = true });
 
             // Act
             var result = await _videoEducationService.DeleteAsync(new VideoEducationRequestDto { Id = 1 });
-
-            // Assert
-            // Ensure that the returned DTO does not have 'IsDeleted'
-            Assert.NotNull(result);
+            Assert.NotNull(result); 
             Assert.Equal(1, result.Id);
-            Assert.Equal("JavaScript Tutorial", result.Title);
-            // Do not check for IsDeleted here if it's not part of the DTO
+            Assert.Equal("JavaScript Tutorial", result.Title); 
+                                                            
+                                                            
+            _mockVideoEducationRepository.Verify(repo => repo.DeleteAsync(It.Is<VideoEducation>(ve => ve.IsDeleted == true), false), Times.Once);
         }
+
+
+
 
         [Fact]
         public async Task GetAsync_ShouldReturnVideoEducation()
@@ -159,20 +165,34 @@ namespace TechCareer.Tests.UnitTests
         }
 
         [Fact]
-        public async Task UpdateAsync_ShouldThrowNotImplementedException()
+        public async Task UpdateAsync_ShouldThrowApplicationException_WhenVideoEducationNotFound()
         {
             // Arrange
             var videoEducationUpdateDto = new VideoEducationUpdateRequestDto
             {
                 Id = 1,
                 Title = "C# Tutorial"
-                // Add any other properties that are part of the update DTO
+                // Diğer özellikleri burada ekleyebilirsiniz.
             };
 
+            // _videoEducationRepository.GetAsync metodunu, null dönecek şekilde ayarlıyoruz.
+            _mockVideoEducationRepository.Setup(repo => repo.GetAsync(
+                It.IsAny<Expression<Func<VideoEducation, bool>>>(),
+                true,  // include parametresi
+                false, // withDeleted parametresi
+                true,  // enableTracking parametresi
+                It.IsAny<CancellationToken>() // cancellationToken parametresi
+            ))
+            .ReturnsAsync((VideoEducation?)null);  // Burada null döndürülmesi sağlanıyor.
+
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<NotImplementedException>(() => _videoEducationService.UpdateAsync(videoEducationUpdateDto));
-            Assert.Equal("The method or operation is not implemented.", exception.Message);
+            var exception = await Assert.ThrowsAsync<ApplicationException>(() => _videoEducationService.UpdateAsync(videoEducationUpdateDto));
+
+            // Assert: Hata mesajını kontrol ediyoruz.
+            Assert.Equal("Video Education not found.", exception.Message);
         }
+
+
 
     }
 }

@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using TechCareer.Service.Concretes;
 using Xunit;
+
 namespace TechCareer.Service.Tests.UnitTests
 {
     public class UserWithTokenServiceTests
@@ -37,19 +37,21 @@ namespace TechCareer.Service.Tests.UnitTests
             };
 
             var userOperationClaims = new List<UserOperationClaim>
+    {
+        new UserOperationClaim(1, 1)
         {
-            new UserOperationClaim(1, 1)
-            {
-                User = user,
-                OperationClaim = new OperationClaim { Id = 1, Name = "Admin" },
-                IsDeleted = false
-            }
-        };
+            User = user,
+            OperationClaim = new OperationClaim { Id = 1, Name = "Admin" },
+            IsDeleted = false
+        }
+    };
 
+            // Mock the repository to return the userOperationClaims as an async list
             _mockUserOperationClaimRepository
                 .Setup(repo => repo.Query())
-                .Returns(userOperationClaims.AsQueryable().AsNoTracking());
+                .Returns(userOperationClaims.AsQueryable().AsNoTracking()); // This line might cause issues if not async, so we handle the issue below
 
+            // Mock the helper method
             var expectedAccessToken = new AccessToken
             {
                 Token = "mockedToken",
@@ -68,8 +70,10 @@ namespace TechCareer.Service.Tests.UnitTests
             Assert.Equal(expectedAccessToken.Token, result.Token);
             Assert.Equal(expectedAccessToken.Expiration, result.Expiration);
 
+            // Verify the method calls
             _mockUserOperationClaimRepository.Verify(repo => repo.Query(), Times.Once);
             _mockTokenHelper.Verify(helper => helper.CreateToken(user, It.IsAny<List<OperationClaim>>()), Times.Once);
         }
+
     }
 }

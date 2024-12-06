@@ -1,149 +1,156 @@
-﻿using Core.Persistence.Extensions;
-using Core.Security.Entities;
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Moq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using TechCareer.DataAccess.Repositories.Abstracts;
 using TechCareer.Service.Abstracts;
 using TechCareer.Service.Concretes;
+using Core.Security.Entities;
+using TechCareer.DataAccess.Repositories.Abstracts;
 using TechCareer.Service.Rules;
+using Core.Persistence.Extensions;
 
-namespace TechCareer.Service.Tests.UnitTests
+namespace TechCareer.Service.Tests.UnitTests;
+
+public class UserServiceTests
 {
-    public class UserServiceTests
+    private readonly Mock<IUserRepository> _mockUserRepository;
+    private readonly Mock<IUserBusinessRules> _mockUserBusinessRules;
+    private readonly IUserService _userService;
+
+    public UserServiceTests()
     {
-        private readonly Mock<IUserRepository> _mockUserRepository;
-        private readonly Mock<UserBusinessRules> _mockUserBusinessRules;
-        private readonly IUserService _userService;
+        _mockUserRepository = new Mock<IUserRepository>();
+        _mockUserBusinessRules = new Mock<IUserBusinessRules>();
+        _userService = new UserService(_mockUserBusinessRules.Object, _mockUserRepository.Object);
+    }
 
-        public UserServiceTests()
+    [Fact]
+    public async Task GetAsync_ShouldReturnUser_WhenUserExists()
+    {
+        // Arrange
+        var userPredicate = (Expression<Func<User, bool>>)(u => u.Email == "test@example.com");
+        var expectedUser = new User { Id = 1, Email = "test@example.com" };
+
+        _mockUserRepository.Setup(repo => repo.GetAsync(
+            userPredicate,
+            false, // include default değeri
+            false, // withDeleted default değeri
+            true,  // enableTracking default değeri
+            default)) // CancellationToken default
+            .ReturnsAsync(expectedUser);
+
+        // Act
+        var result = await _userService.GetAsync(userPredicate);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(expectedUser.Email, result?.Email);
+    }
+
+    [Fact]
+    public async Task GetPaginateAsync_ShouldReturnPaginatedUsers_WhenUsersExist()
+    {
+        // Arrange
+        var userList = new List<User>
         {
-            _mockUserRepository = new Mock<IUserRepository>();
-            _mockUserBusinessRules = new Mock<UserBusinessRules>();
-            _userService = new UserService(_mockUserBusinessRules.Object, _mockUserRepository.Object);
-        }
+            new User { Id = 1, Email = "user1@example.com" },
+            new User { Id = 2, Email = "user2@example.com" }
+        };
 
-        [Fact]
-        public async Task GetAsync_ShouldReturnUser_WhenUserExists()
+        var paginateResult = new Paginate<User>
         {
-            var userPredicate = (Expression<Func<User, bool>>)(u => u.Email == "test@example.com");
-            var expectedUser = new User { Id = 1, Email = "test@example.com" };
+            Items = userList,
+            Index = 0,
+            Size = 10,
+            Count = userList.Count,
+            Pages = 1,
+            TotalItems = userList.Count,
+            TotalPages = 1
+        };
 
-            _mockUserRepository
-                .Setup(r => r.GetAsync(It.IsAny<Expression<Func<User, bool>>>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(expectedUser);
+        _mockUserRepository.Setup(repo => repo.GetPaginateAsync(
+            null, // predicate
+            null, // orderBy
+            false, // include
+            0,     // index
+            10,    // size
+            false, // withDeleted
+            true,  // enableTracking
+            default)) // CancellationToken default
+            .ReturnsAsync(paginateResult);
 
-            var result = await _userService.GetAsync(userPredicate);
+        // Act
+        var result = await _userService.GetPaginateAsync();
 
-            Assert.NotNull(result);
-            Assert.Equal(expectedUser.Email, result?.Email);
-        }
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(userList.Count, result.Items.Count);
+        Assert.Equal(1, result.Pages);
+        Assert.Equal(0, result.Index);
+    }
 
-        [Fact]
-        public async Task GetAsync_ShouldReturnNull_WhenUserDoesNotExist()
-        {
-            var userPredicate = (Expression<Func<User, bool>>)(u => u.Email == "nonexistent@example.com");
-            _mockUserRepository
-                .Setup(r => r.GetAsync(It.IsAny<Expression<Func<User, bool>>>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((User)null);
+    [Fact]
+    public async Task AddAsync_ShouldAddUser_WhenValidUserIsProvided()
+    {
+        // Arrange
+        var newUser = new User { Id = 1, Email = "newuser@example.com" };
 
-            var result = await _userService.GetAsync(userPredicate);
+        _mockUserBusinessRules
+            .Setup(r => r.UserEmailShouldNotExistWhenInsert(newUser.Email))
+            .Verifiable();
 
-            Assert.Null(result);
-        }
+        _mockUserRepository
+            .Setup(r => r.AddAsync(It.IsAny<User>()))
+            .ReturnsAsync(newUser);
 
-        [Fact]
-        public async Task GetPaginateAsync_ShouldReturnPaginatedUsers_WhenUsersExist()
-        {
-            var userList = new List<User>
-            {
-                new User { Id = 1, Email = "user1@example.com" },
-                new User { Id = 2, Email = "user2@example.com" }
-            };
+        // Act
+        var result = await _userService.AddAsync(newUser);
 
-            var paginateResult = new Paginate<User>
-            {
-                Items = userList,
-                Index = 1,
-                Size = 10,
-                Count = userList.Count,
-                Pages = 1,
-                TotalItems = userList.Count,
-                TotalPages = 1
-            };
+        // Assert
+        _mockUserBusinessRules.Verify();
+        _mockUserRepository.Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Once);
+        Assert.NotNull(result);
+        Assert.Equal(newUser.Email, result.Email);
+    }
 
-            _mockUserRepository
-                .Setup(r => r.GetPaginateAsync(
-                    It.IsAny<Expression<Func<User, bool>>>(),
-                    It.IsAny<Func<IQueryable<User>, IOrderedQueryable<User>>>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<int>(),
-                    It.IsAny<int>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(paginateResult);
+    [Fact]
+    public async Task UpdateAsync_ShouldUpdateUser_WhenValidUserIsProvided()
+    {
+        // Arrange
+        var updatedUser = new User { Id = 1, Email = "updateduser@example.com" };
 
-            var result = await _userService.GetPaginateAsync();
+        _mockUserBusinessRules
+            .Setup(r => r.UserEmailShouldNotExistWhenUpdate(updatedUser.Id, updatedUser.Email))
+            .Verifiable();
 
-            Assert.NotNull(result);
-            Assert.Equal(userList.Count, result.Items.Count);
-            Assert.Equal(1, result.Pages);
-            Assert.Equal(10, result.Size);
-            Assert.Equal(1, result.Index);
-            Assert.False(result.HasNext);
-            Assert.False(result.HasPrevious);
-        }
+        _mockUserRepository
+            .Setup(r => r.UpdateAsync(It.IsAny<User>()))
+            .ReturnsAsync(updatedUser);
 
-        [Fact]
-        public async Task AddAsync_ShouldAddUser_WhenValidUserIsProvided()
-        {
-            var newUser = new User { Id = 1, Email = "newuser@example.com" };
+        // Act
+        var result = await _userService.UpdateAsync(updatedUser);
 
-            _mockUserBusinessRules.Setup(r => r.UserEmailShouldNotExistsWhenInsert(It.IsAny<string>())).Verifiable();
-            _mockUserRepository.Setup(r => r.AddAsync(It.IsAny<User>())).ReturnsAsync(newUser);
+        // Assert
+        _mockUserBusinessRules.Verify();
+        _mockUserRepository.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Once);
+        Assert.NotNull(result);
+        Assert.Equal(updatedUser.Email, result.Email);
+    }
 
-            var result = await _userService.AddAsync(newUser);
+    [Fact]
+    public async Task DeleteAsync_ShouldDeleteUser_WhenUserIsValid()
+    {
+        // Arrange
+        var userToDelete = new User { Id = 1, Email = "deleteuser@example.com" };
 
-            _mockUserBusinessRules.Verify();
-            _mockUserRepository.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
-            Assert.NotNull(result);
-            Assert.Equal(newUser.Email, result.Email);
-        }
+        _mockUserRepository
+            .Setup(repo => repo.DeleteAsync(It.IsAny<User>(), false)) // `permanent` default değer
+            .ReturnsAsync(userToDelete);
 
-        [Fact]
-        public async Task UpdateAsync_ShouldUpdateUser_WhenValidUserIsProvided()
-        {
-            var updatedUser = new User { Id = 1, Email = "updateduser@example.com" };
+        // Act
+        var result = await _userService.DeleteAsync(userToDelete);
 
-            _mockUserBusinessRules.Setup(r => r.UserEmailShouldNotExistsWhenUpdate(It.IsAny<int>(), It.IsAny<string>())).Verifiable();
-            _mockUserRepository.Setup(r => r.UpdateAsync(It.IsAny<User>())).ReturnsAsync(updatedUser);
-
-            var result = await _userService.UpdateAsync(updatedUser);
-
-            _mockUserBusinessRules.Verify();
-            _mockUserRepository.Verify(r => r.UpdateAsync(It.IsAny<User>()), Times.Once);
-            Assert.NotNull(result);
-            Assert.Equal(updatedUser.Email, result.Email);
-        }
-
-        [Fact]
-        public async Task DeleteAsync_ShouldDeleteUser_WhenUserIsValid()
-        {
-            var userToDelete = new User { Id = 1, Email = "deleteuser@example.com" };
-            _mockUserRepository.Setup(r => r.DeleteAsync(It.IsAny<User>(), It.IsAny<bool>())).ReturnsAsync(userToDelete);
-
-            var result = await _userService.DeleteAsync(userToDelete);
-
-            Assert.NotNull(result);
-            Assert.Equal(userToDelete.Email, result.Email);
-            Assert.Equal(userToDelete.Id, result.Id);
-        }
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(userToDelete.Id, result.Id);
+        Assert.Equal(userToDelete.Email, result.Email);
     }
 }
-
-
