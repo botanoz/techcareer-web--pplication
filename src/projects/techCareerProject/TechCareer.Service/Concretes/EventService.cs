@@ -1,7 +1,9 @@
-﻿using Core.Persistence.Extensions;
+﻿using Core.CrossCuttingConcerns.Serilog;
+using Core.Persistence.Extensions;
 using Core.Security.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,10 +21,12 @@ namespace TechCareer.Service.Concretes
     public class EventService : IEventService
     {
         private readonly IEventRepository _eventRepository;
+        private readonly LoggerServiceBase _logger;
 
-        public EventService(IEventRepository eventRepository)
+        public EventService(IEventRepository eventRepository, LoggerServiceBase logger)
         {
             _eventRepository = eventRepository;
+            _logger = logger;
         }
 
         // Etkinlik eklemek için AddAsync metodu
@@ -43,6 +47,8 @@ namespace TechCareer.Service.Concretes
                 // Etkinliği veritabanına ekleyin
                 var addedEvent = await _eventRepository.AddAsync(eventEntity);
 
+                _logger.Info("Info log: Event added.");
+
                 // Dönen etkinlik bilgilerini içeren DTO'yu döndürün
                 return new EventResponseDto
                 {
@@ -59,69 +65,89 @@ namespace TechCareer.Service.Concretes
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
-                throw new ApplicationException("Etkinlik eklenemedi", ex);
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
             }
         }
 
         // Etkinlik silme metodu
         public async Task<EventResponseDto> DeleteAsync(EventRequestDto eventRequestDto, bool permanent = false)
         {
-            var selectedEvent = await _eventRepository.GetAsync(
-                x => x.Id == eventRequestDto.Id,
-                withDeleted: true
-            );
-
-            if (selectedEvent == null)
-                throw new ApplicationException("Event not found.");
-
-            if (permanent)
+            try
             {
-                await _eventRepository.DeleteAsync(selectedEvent, true);
+                var selectedEvent = await _eventRepository.GetAsync(
+                    x => x.Id == eventRequestDto.Id,
+                    withDeleted: true
+                );
+
+                if (selectedEvent == null)
+                    throw new ApplicationException("Event not found.");
+
+                if (permanent)
+                {
+                    await _eventRepository.DeleteAsync(selectedEvent, true);
+                }
+                else
+                {
+                    selectedEvent.IsDeleted = true;
+                    await _eventRepository.DeleteAsync(selectedEvent);
+                }
+
+                _logger.Info("Info log: Event deleted.");
+
+                return new EventResponseDto
+                {
+                    Id = selectedEvent.Id,
+                    Title = selectedEvent.Title,
+                    Description = selectedEvent.Description,
+                    ImageUrl = selectedEvent.ImageUrl,
+                    StartDate = selectedEvent.StartDate,
+                    EndDate = selectedEvent.EndDate,
+                    ApplicationDeadline = selectedEvent.ApplicationDeadline,
+                    ParticipationText = selectedEvent.ParticipationText,
+                    CategoryId = selectedEvent.CategoryId
+                };
             }
-            else
+            catch (Exception ex)
             {
-                selectedEvent.IsDeleted = true;
-                await _eventRepository.DeleteAsync(selectedEvent);
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
             }
 
-            return new EventResponseDto
-            {
-                Id = selectedEvent.Id,
-                Title = selectedEvent.Title,
-                Description = selectedEvent.Description,
-                ImageUrl = selectedEvent.ImageUrl,
-                StartDate = selectedEvent.StartDate,
-                EndDate = selectedEvent.EndDate,
-                ApplicationDeadline = selectedEvent.ApplicationDeadline,
-                ParticipationText = selectedEvent.ParticipationText,
-                CategoryId = selectedEvent.CategoryId
-            };
         }
 
 
         public async Task<EventResponseDto> FindEventAsync(EventRequestDto eventRequestDto)
         {
-            // 'await' anahtar kelimesi ile asenkron metod çağrısı yapılmalı
-            var eventEntity = await _eventRepository.GetAsync(x => x.Id == eventRequestDto.Id);
-
-            // Eğer etkinlik bulunamazsa, hata fırlatıyoruz
-            if (eventEntity == null)
-                throw new ApplicationException("Event not found.");
-
-            // EventResponseDto'yu döndürüyoruz
-            return new EventResponseDto
+            try
             {
-                Id = eventEntity.Id,
-                Title = eventEntity.Title,
-                Description = eventEntity.Description,
-                ImageUrl = eventEntity.ImageUrl,
-                StartDate = eventEntity.StartDate,
-                EndDate = eventEntity.EndDate,
-                ApplicationDeadline = eventEntity.ApplicationDeadline,
-                ParticipationText = eventEntity.ParticipationText,
-                CategoryId = eventEntity.CategoryId
-            };
+                // 'await' anahtar kelimesi ile asenkron metod çağrısı yapılmalı
+                var eventEntity = await _eventRepository.GetAsync(x => x.Id == eventRequestDto.Id);
+
+                // Eğer etkinlik bulunamazsa, hata fırlatıyoruz
+                if (eventEntity == null)
+                    throw new ApplicationException("Event not found.");
+
+                // EventResponseDto'yu döndürüyoruz
+                return new EventResponseDto
+                {
+                    Id = eventEntity.Id,
+                    Title = eventEntity.Title,
+                    Description = eventEntity.Description,
+                    ImageUrl = eventEntity.ImageUrl,
+                    StartDate = eventEntity.StartDate,
+                    EndDate = eventEntity.EndDate,
+                    ApplicationDeadline = eventEntity.ApplicationDeadline,
+                    ParticipationText = eventEntity.ParticipationText,
+                    CategoryId = eventEntity.CategoryId
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
 
@@ -134,25 +160,37 @@ namespace TechCareer.Service.Concretes
             CancellationToken cancellationToken = default
         )
         {
-            // Event repository ile etkinlik verisini alıyoruz
-            var selectedEvent = await _eventRepository.GetAsync(predicate, withDeleted: withDeleted);
-
-            if (selectedEvent == null)
-                return null;
-
-            // EventResponseDto döndürüyoruz
-            return new EventResponseDto
+            try
             {
-                Id = selectedEvent.Id,
-                Title = selectedEvent.Title,
-                Description = selectedEvent.Description,
-                ImageUrl = selectedEvent.ImageUrl,
-                StartDate = selectedEvent.StartDate,
-                EndDate = selectedEvent.EndDate,
-                ApplicationDeadline = selectedEvent.ApplicationDeadline,
-                ParticipationText = selectedEvent.ParticipationText,
-                CategoryId = selectedEvent.CategoryId
-            };
+                // Event repository ile etkinlik verisini alıyoruz
+                var selectedEvent = await _eventRepository.GetAsync(predicate, withDeleted: withDeleted);
+
+                if (selectedEvent == null)
+                {
+                    _logger.Warn("Warn log: Event not found.");
+                    throw new ApplicationException("Event not found.");
+                }
+
+                // EventResponseDto döndürüyoruz
+                return new EventResponseDto
+                {
+                    Id = selectedEvent.Id,
+                    Title = selectedEvent.Title,
+                    Description = selectedEvent.Description,
+                    ImageUrl = selectedEvent.ImageUrl,
+                    StartDate = selectedEvent.StartDate,
+                    EndDate = selectedEvent.EndDate,
+                    ApplicationDeadline = selectedEvent.ApplicationDeadline,
+                    ParticipationText = selectedEvent.ParticipationText,
+                    CategoryId = selectedEvent.CategoryId
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
 
@@ -166,28 +204,37 @@ namespace TechCareer.Service.Concretes
             CancellationToken cancellationToken = default
         )
         {
-            var events = await _eventRepository.GetListAsync(
-                predicate,
-                enableTracking: enableTracking,
-                withDeleted: withDeleted
-            );
-
-            var filteredEvents = withDeleted
-                ? events
-                : events.Where(e => !e.IsDeleted).ToList();
-
-            return filteredEvents.Select(e => new EventResponseDto
+            try
             {
-                Id = e.Id,
-                Title = e.Title,
-                Description = e.Description,
-                ImageUrl = e.ImageUrl,
-                StartDate = e.StartDate,
-                EndDate = e.EndDate,
-                ApplicationDeadline = e.ApplicationDeadline,
-                ParticipationText = e.ParticipationText,
-                CategoryId = e.CategoryId
-            }).ToList();
+                var events = await _eventRepository.GetListAsync(
+                    predicate,
+                    enableTracking: enableTracking,
+                    withDeleted: withDeleted
+                );
+
+                var filteredEvents = withDeleted
+                    ? events
+                    : events.Where(e => !e.IsDeleted).ToList();
+
+                return filteredEvents.Select(e => new EventResponseDto
+                {
+                    Id = e.Id,
+                    Title = e.Title,
+                    Description = e.Description,
+                    ImageUrl = e.ImageUrl,
+                    StartDate = e.StartDate,
+                    EndDate = e.EndDate,
+                    ApplicationDeadline = e.ApplicationDeadline,
+                    ParticipationText = e.ParticipationText,
+                    CategoryId = e.CategoryId
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
 
@@ -204,69 +251,90 @@ namespace TechCareer.Service.Concretes
             CancellationToken cancellationToken = default
         )
         {
-            var paginateResult = await _eventRepository.GetPaginateAsync(
-                predicate,
-                orderBy: orderBy,
-                index: index,
-                size: size,
-                enableTracking: enableTracking,
-                withDeleted: withDeleted
-            );
-
-            return new Paginate<EventResponseDto>
+            try
             {
-                Items = paginateResult.Items.Select(e => new EventResponseDto
+                var paginateResult = await _eventRepository.GetPaginateAsync(
+                    predicate,
+                    orderBy: orderBy,
+                    index: index,
+                    size: size,
+                    enableTracking: enableTracking,
+                    withDeleted: withDeleted
+                );
+
+                return new Paginate<EventResponseDto>
                 {
-                    Id = e.Id,
-                    Title = e.Title,
-                    Description = e.Description,
-                    ImageUrl = e.ImageUrl,
-                    StartDate = e.StartDate,
-                    EndDate = e.EndDate,
-                    ApplicationDeadline = e.ApplicationDeadline,
-                    ParticipationText = e.ParticipationText,
-                    CategoryId = e.CategoryId
-                }).ToList(),
-                Index = paginateResult.Index,
-                Size = paginateResult.Size,
-                TotalItems = paginateResult.TotalItems,
-                TotalPages = paginateResult.TotalPages
-            };
+                    Items = paginateResult.Items.Select(e => new EventResponseDto
+                    {
+                        Id = e.Id,
+                        Title = e.Title,
+                        Description = e.Description,
+                        ImageUrl = e.ImageUrl,
+                        StartDate = e.StartDate,
+                        EndDate = e.EndDate,
+                        ApplicationDeadline = e.ApplicationDeadline,
+                        ParticipationText = e.ParticipationText,
+                        CategoryId = e.CategoryId
+                    }).ToList(),
+                    Index = paginateResult.Index,
+                    Size = paginateResult.Size,
+                    TotalItems = paginateResult.TotalItems,
+                    TotalPages = paginateResult.TotalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
 
         // Etkinlik güncelleme metodu
         public async Task<EventResponseDto> UpdateAsync(EventUpdateRequestDto eventUpdateRequestDto)
         {
-
-            var updatedEvent = await _eventRepository.GetAsync(x => x.Id == eventUpdateRequestDto.Id);
-
-            if (updatedEvent == null)
-                throw new ApplicationException("Event not found.");
-
-            updatedEvent.Title = eventUpdateRequestDto.Title;
-            updatedEvent.Description = eventUpdateRequestDto.Description;
-            updatedEvent.ImageUrl = eventUpdateRequestDto.ImageUrl;
-            updatedEvent.StartDate = eventUpdateRequestDto.StartDate;
-            updatedEvent.EndDate = eventUpdateRequestDto.EndDate;
-            updatedEvent.ApplicationDeadline = eventUpdateRequestDto.ApplicationDeadline;
-            updatedEvent.ParticipationText = eventUpdateRequestDto.ParticipationText;
-            updatedEvent.CategoryId = eventUpdateRequestDto.CategoryId;
-
-            await _eventRepository.UpdateAsync(updatedEvent);
-
-            return new EventResponseDto
+            try
             {
-                Id = updatedEvent.Id,
-                Title = updatedEvent.Title,
-                Description = updatedEvent.Description,
-                ImageUrl = updatedEvent.ImageUrl,
-                StartDate = updatedEvent.StartDate,
-                EndDate = updatedEvent.EndDate,
-                ApplicationDeadline = updatedEvent.ApplicationDeadline,
-                ParticipationText = updatedEvent.ParticipationText,
-                CategoryId = updatedEvent.CategoryId
-            };
+                var updatedEvent = await _eventRepository.GetAsync(x => x.Id == eventUpdateRequestDto.Id);
+
+                if (updatedEvent == null)
+                {
+                    _logger.Warn("Warn log: Event not found.");
+                    throw new ApplicationException("Event not found.");
+                }
+
+                updatedEvent.Title = eventUpdateRequestDto.Title;
+                updatedEvent.Description = eventUpdateRequestDto.Description;
+                updatedEvent.ImageUrl = eventUpdateRequestDto.ImageUrl;
+                updatedEvent.StartDate = eventUpdateRequestDto.StartDate;
+                updatedEvent.EndDate = eventUpdateRequestDto.EndDate;
+                updatedEvent.ApplicationDeadline = eventUpdateRequestDto.ApplicationDeadline;
+                updatedEvent.ParticipationText = eventUpdateRequestDto.ParticipationText;
+                updatedEvent.CategoryId = eventUpdateRequestDto.CategoryId;
+
+                await _eventRepository.UpdateAsync(updatedEvent);
+
+                _logger.Info("Info log: Event updated.");
+
+                return new EventResponseDto
+                {
+                    Id = updatedEvent.Id,
+                    Title = updatedEvent.Title,
+                    Description = updatedEvent.Description,
+                    ImageUrl = updatedEvent.ImageUrl,
+                    StartDate = updatedEvent.StartDate,
+                    EndDate = updatedEvent.EndDate,
+                    ApplicationDeadline = updatedEvent.ApplicationDeadline,
+                    ParticipationText = updatedEvent.ParticipationText,
+                    CategoryId = updatedEvent.CategoryId
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
         }
     }
 }
