@@ -10,7 +10,7 @@ namespace TechCareer.Service.Concretes;
 public sealed class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
-    private readonly IUserBusinessRules _userBusinessRules; // Interface kullanımı
+    private readonly IUserBusinessRules _userBusinessRules; 
 
     public UserService(IUserBusinessRules userBusinessRules, IUserRepository userRepository)
     {
@@ -25,7 +25,7 @@ public sealed class UserService : IUserService
         return user;
     }
 
-    //[CacheAspect(bypassCache:false, cacheKeyTemplate:"Users({index},{size})",cacheGroupKey:"Users",Priority = 3)]
+
     public async Task<Paginate<User>> GetPaginateAsync(Expression<Func<User, bool>>? predicate = null, Func<IQueryable<User>, IOrderedQueryable<User>>? orderBy = null, bool include = false, int index = 0,
         int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
     {
@@ -53,14 +53,14 @@ public sealed class UserService : IUserService
 
     public async Task<User> AddAsync(User user)
     {
-        await _userBusinessRules.UserEmailShouldNotExistWhenInsert(user.Email); // Hata giderildi
+        await _userBusinessRules.UserEmailShouldNotExistWhenInsert(user.Email);
         User addedUser = await _userRepository.AddAsync(user);
         return addedUser;
     }
 
     public async Task<User> UpdateAsync(User user)
     {
-        await _userBusinessRules.UserEmailShouldNotExistWhenUpdate(user.Id, user.Email); // Hata giderildi
+        await _userBusinessRules.UserEmailShouldNotExistWhenUpdate(user.Id, user.Email);
         User updatedUser = await _userRepository.UpdateAsync(user);
         return updatedUser;
     }

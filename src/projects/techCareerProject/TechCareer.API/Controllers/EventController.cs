@@ -57,7 +57,6 @@ namespace TechCareer.API.Controllers
         public async Task<IActionResult> Delete(Guid id, [FromQuery] bool permanent = false)
         {
 
-            // _eventService.DeleteAsync kullanıyoruz, çünkü etkinlik işlemi yapıyoruz
             var deletedEvent = await _eventService.DeleteAsync(
                 new EventRequestDto { Id = id }, permanent);
 

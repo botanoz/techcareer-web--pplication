@@ -26,7 +26,6 @@ namespace TechCareer.Service.Concretes
             _logger = logger;
         }
 
-        // Get a single video education with optional filters
         public async Task<VideoEducationResponseDto?> GetAsync(
             Expression<Func<VideoEducation, bool>> predicate,
             bool include = false,
@@ -62,7 +61,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Get paginated list of video educations
         public async Task<Paginate<VideoEducationResponseDto>> GetPaginateAsync(
             Expression<Func<VideoEducation, bool>>? predicate = null,
             Func<IQueryable<VideoEducation>, IOrderedQueryable<VideoEducation>>? orderBy = null,
@@ -105,7 +103,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Get list of video educations
         public async Task<List<VideoEducationResponseDto>> GetListAsync(
             Expression<Func<VideoEducation, bool>>? predicate = null,
             Func<IQueryable<VideoEducation>, IOrderedQueryable<VideoEducation>>? orderBy = null,
@@ -139,7 +136,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Add a new video education
         public async Task<VideoEducationResponseDto> AddAsync(VideoEducationAddRequestDto videoEducationAddRequestDto)
         {
             try
@@ -181,7 +177,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Update an existing video education
         public async Task<VideoEducationResponseDto> UpdateAsync(VideoEducationUpdateRequestDto videoEducationUpdateRequestDto)
         {
             try
@@ -225,7 +220,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Delete a video education
         public async Task<VideoEducationResponseDto> DeleteAsync(VideoEducationRequestDto videoEducationRequestDto, bool permanent = false)
         {
             try

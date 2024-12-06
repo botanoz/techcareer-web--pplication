@@ -27,22 +27,18 @@ namespace TechCareer.Service.Concretes
             _logger = logger;
         }
 
-        // Add a new category
         public async Task<CategoryResponseDto> AddAsync(CategoryAddRequestDto categoryAddRequestDto)
         {
             try
             {
                 Category c = new Category(categoryAddRequestDto.Name);
-                // Check business rules
                 await _categoryBusinessRules.CategoryShouldBeExistsWhenSelected(c);
 
-                // Create and save the category
                 var category = new Category(categoryAddRequestDto.Name);
                 var addedCategory = await _categoryRepository.AddAsync(category);
 
                 _logger.Info("Info log: Category added.");
 
-                // Return response DTO
                 return new CategoryResponseDto
                 {
                     Id = addedCategory.Id,
@@ -57,7 +53,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Delete a category
         public async Task<CategoryResponseDto> DeleteAsync(CategoryRequestDto categoryRequestDto, bool permanent = false)
         {
             try
@@ -93,7 +88,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Find a category by ID
         public async Task<CategoryResponseDto> FindCategoryAsync(CategoryRequestDto categoryRequestDto)
         {
             try
@@ -121,7 +115,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Get a single category with optional filters
         public async Task<CategoryResponseDto?> GetAsync(
             Expression<Func<Category, bool>> predicate,
             bool withDeleted = false, 
@@ -149,7 +142,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Get all categories with optional filters
         public async Task<List<CategoryResponseDto>> GetListAsync(
             Expression<Func<Category, bool>>? predicate = null,
             bool include = false,
@@ -182,7 +174,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Get paginated list of categories
         public async Task<Paginate<CategoryResponseDto>> GetPaginateAsync(
             Expression<Func<Category, bool>>? predicate = null,
             int index = 0,
@@ -216,7 +207,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Update a category
         public async Task<CategoryResponseDto> UpdateAsync(CategoryUpdateRequestDto categoryUpdateRequestDto)
         {
             try
@@ -230,7 +220,6 @@ namespace TechCareer.Service.Concretes
                 }
 
 
-                // Update fields
                 category.Name = categoryUpdateRequestDto.Name;
                 await _categoryRepository.UpdateAsync(category);
 
