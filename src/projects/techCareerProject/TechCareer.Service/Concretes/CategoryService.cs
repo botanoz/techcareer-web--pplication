@@ -1,4 +1,5 @@
-﻿using Core.Persistence.Extensions;
+﻿using Core.CrossCuttingConcerns.Serilog;
+using Core.Persistence.Extensions;
 using Core.Security.Entities;
 using System;
 using System.Collections.Generic;
@@ -17,70 +18,107 @@ namespace TechCareer.Service.Concretes
     {
         private readonly ICategoryRepository _categoryRepository;
         private readonly CategoryBusinessRules _categoryBusinessRules;
+        private readonly LoggerServiceBase _logger;
 
-        public CategoryService(ICategoryRepository categoryRepository, CategoryBusinessRules categoryBusinessRules)
+        public CategoryService(ICategoryRepository categoryRepository, CategoryBusinessRules categoryBusinessRules, LoggerServiceBase logger)
         {
             _categoryRepository = categoryRepository;
             _categoryBusinessRules = categoryBusinessRules;
+            _logger = logger;
         }
 
         // Add a new category
         public async Task<CategoryResponseDto> AddAsync(CategoryAddRequestDto categoryAddRequestDto)
         {
-            Category c = new Category(categoryAddRequestDto.Name);
-            // Check business rules
-            await _categoryBusinessRules.CategoryShouldBeExistsWhenSelected(c);
-
-            // Create and save the category
-            var category = new Category(categoryAddRequestDto.Name);
-            var addedCategory = await _categoryRepository.AddAsync(category);
-
-            // Return response DTO
-            return new CategoryResponseDto
+            try
             {
-                Id = addedCategory.Id,
-                Name = addedCategory.Name
-            };
+                Category c = new Category(categoryAddRequestDto.Name);
+                // Check business rules
+                await _categoryBusinessRules.CategoryShouldBeExistsWhenSelected(c);
+
+                // Create and save the category
+                var category = new Category(categoryAddRequestDto.Name);
+                var addedCategory = await _categoryRepository.AddAsync(category);
+
+                _logger.Info("Info log: Category added.");
+
+                // Return response DTO
+                return new CategoryResponseDto
+                {
+                    Id = addedCategory.Id,
+                    Name = addedCategory.Name
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Delete a category
         public async Task<CategoryResponseDto> DeleteAsync(CategoryRequestDto categoryRequestDto, bool permanent = false)
         {
-            var category = await _categoryRepository.GetAsync(x => x.Id == categoryRequestDto.Id, withDeleted: true);
-
-            if (category == null)
-                throw new ApplicationException("Category not found.");
-
-            if (permanent)
+            try
             {
-                await _categoryRepository.DeleteAsync(category, true);
+                var category = await _categoryRepository.GetAsync(x => x.Id == categoryRequestDto.Id, withDeleted: true);
+
+                if (category == null)
+                    throw new ApplicationException("Category not found.");
+
+                if (permanent)
+                {
+                    await _categoryRepository.DeleteAsync(category, true);
+                }
+                else
+                {
+                    category.IsDeleted = true;
+                    await _categoryRepository.DeleteAsync(category);
+                }
+
+                _logger.Info("Info log: Category deleted.");
+
+                return new CategoryResponseDto
+                {
+                    Id = category.Id,
+                    Name = category.Name
+                };
             }
-            else
+            catch (Exception ex)
             {
-                category.IsDeleted = true;
-                await _categoryRepository.DeleteAsync(category);
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
             }
 
-            return new CategoryResponseDto
-            {
-                Id = category.Id,
-                Name = category.Name
-            };
         }
 
         // Find a category by ID
         public async Task<CategoryResponseDto> FindCategoryAsync(CategoryRequestDto categoryRequestDto)
         {
-            var category = await _categoryRepository.GetAsync(x => x.Id == categoryRequestDto.Id);
-
-            if (category == null)
-                throw new ApplicationException("Category not found.");
-
-            return new CategoryResponseDto
+            try
             {
-                Id = category.Id,
-                Name = category.Name
-            };
+                var category = await _categoryRepository.GetAsync(x => x.Id == categoryRequestDto.Id);
+
+                if (category == null)
+                {
+                    _logger.Warn("Category not found.");
+                    throw new ApplicationException("Category not found.");
+                }
+
+
+                return new CategoryResponseDto
+                {
+                    Id = category.Id,
+                    Name = category.Name
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Get a single category with optional filters
@@ -90,16 +128,25 @@ namespace TechCareer.Service.Concretes
             CancellationToken cancellationToken = default
         )
         {
-            var category = await _categoryRepository.GetAsync(predicate, withDeleted: withDeleted);
-
-            if (category == null)
-                return null;
-
-            return new CategoryResponseDto
+            try
             {
-                Id = category.Id,
-                Name = category.Name
-            };
+                var category = await _categoryRepository.GetAsync(predicate, withDeleted: withDeleted);
+
+                if (category == null)
+                    return null;
+
+                return new CategoryResponseDto
+                {
+                    Id = category.Id,
+                    Name = category.Name
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Get all categories with optional filters
@@ -110,20 +157,29 @@ namespace TechCareer.Service.Concretes
             bool enableTracking = true,
             CancellationToken cancellationToken = default)
         {
-            var categories = await _categoryRepository.GetListAsync(
+            try
+            {
+                var categories = await _categoryRepository.GetListAsync(
                 predicate,
                 enableTracking: enableTracking,
                 withDeleted: true);
 
-            var filteredCategories = withDeleted
-                ? categories
-                : categories.Where(category => !category.IsDeleted).ToList();
+                var filteredCategories = withDeleted
+                    ? categories
+                    : categories.Where(category => !category.IsDeleted).ToList();
 
-            return filteredCategories.Select(category => new CategoryResponseDto
+                return filteredCategories.Select(category => new CategoryResponseDto
+                {
+                    Id = category.Id,
+                    Name = category.Name
+                }).ToList();
+            }
+            catch (Exception ex)
             {
-                Id = category.Id,
-                Name = category.Name
-            }).ToList();
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Get paginated list of categories
@@ -135,39 +191,63 @@ namespace TechCareer.Service.Concretes
             bool enableTracking = true,
             CancellationToken cancellationToken = default)
         {
-            var paginateResult = await _categoryRepository.GetPaginateAsync(predicate, index: index, size: size, enableTracking: enableTracking, withDeleted: withDeleted);
-
-            return new Paginate<CategoryResponseDto>
+            try
             {
-                Items = paginateResult.Items.Select(category => new CategoryResponseDto
+                var paginateResult = await _categoryRepository.GetPaginateAsync(predicate, index: index, size: size, enableTracking: enableTracking, withDeleted: withDeleted);
+
+                return new Paginate<CategoryResponseDto>
                 {
-                    Id = category.Id,
-                    Name = category.Name
-                }).ToList(),
-                Index = paginateResult.Index,
-                Size = paginateResult.Size,
-                TotalItems = paginateResult.TotalItems,
-                TotalPages = paginateResult.TotalPages
-            };
+                    Items = paginateResult.Items.Select(category => new CategoryResponseDto
+                    {
+                        Id = category.Id,
+                        Name = category.Name
+                    }).ToList(),
+                    Index = paginateResult.Index,
+                    Size = paginateResult.Size,
+                    TotalItems = paginateResult.TotalItems,
+                    TotalPages = paginateResult.TotalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Update a category
         public async Task<CategoryResponseDto> UpdateAsync(CategoryUpdateRequestDto categoryUpdateRequestDto)
         {
-            var category = await _categoryRepository.GetAsync(x => x.Id == categoryUpdateRequestDto.Id);
-
-            if (category == null)
-                throw new ApplicationException("Category not found.");
-
-            // Update fields
-            category.Name = categoryUpdateRequestDto.Name;
-            await _categoryRepository.UpdateAsync(category);
-
-            return new CategoryResponseDto
+            try
             {
-                Id = category.Id,
-                Name = category.Name
-            };
+                var category = await _categoryRepository.GetAsync(x => x.Id == categoryUpdateRequestDto.Id);
+
+                if (category == null)
+                {
+                    _logger.Warn("Warn log: Category not found..");
+                    throw new ApplicationException("Category not found.");
+                }
+
+
+                // Update fields
+                category.Name = categoryUpdateRequestDto.Name;
+                await _categoryRepository.UpdateAsync(category);
+
+                _logger.Info("Info log: Category updated.");
+
+                return new CategoryResponseDto
+                {
+                    Id = category.Id,
+                    Name = category.Name
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
     }
 }
