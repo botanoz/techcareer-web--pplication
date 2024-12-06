@@ -25,13 +25,13 @@ namespace TechCareer.Service.Tests.UnitTests
         public JobServiceTests()
         {
             _mockJobRepository = new Mock<IJobRepository>();
-            _mockLogger = new Mock<LoggerServiceBase>().Object;  // Mock Logger if needed
+            _mockLogger = new Mock<LoggerServiceBase>().Object; 
             _jobService = new JobService(_mockJobRepository.Object, _mockLogger);
         }
         [Fact]
         public async Task AddAsync_ShouldReturnAddedJob()
         {
-            // Arrange: JobAddRequestDto nesnesini oluşturuyoruz.
+          
             var jobAddRequestDto = new JobAddRequestDto
             {
                 Title = "Software Developer",
@@ -45,7 +45,7 @@ namespace TechCareer.Service.Tests.UnitTests
                 CompanyId = 1
             };
 
-            // Expected job entity (Job) nesnesini oluşturuyoruz.
+        
             var expectedJob = new Job
             {
                 Title = jobAddRequestDto.Title,
@@ -59,25 +59,24 @@ namespace TechCareer.Service.Tests.UnitTests
                 CompanyId = jobAddRequestDto.CompanyId
             };
 
-            // IJobRepository mock'ını kuruyoruz. AddAsync metodunun expectedJob'u döndürmesini sağlıyoruz.
+           
             _mockJobRepository.Setup(repo => repo.AddAsync(It.IsAny<Job>())).ReturnsAsync(expectedJob);
 
-            // LoggerServiceBase mock'ını kuruyoruz. (İlgili log işlemleri burada yapılacak.)
+         
             var mockLogger = new Mock<LoggerServiceBase>();
 
-            // JobService'i başlatıyoruz.
+          
             var jobService = new JobService(_mockJobRepository.Object, mockLogger.Object);
 
-            // Act: JobService'den AddAsync metodunu çağırıyoruz.
+           
             var result = await jobService.AddAsync(jobAddRequestDto);
 
-            // Assert: Sonucun beklenen değerle uyuşup uyuşmadığını kontrol ediyoruz.
+          
             Assert.NotNull(result);
             Assert.Equal(expectedJob.Title, result.Title);
             Assert.Equal(expectedJob.TypeOfWork, result.TypeOfWork);
             Assert.Equal(expectedJob.YearsOfExperience, result.YearsOfExperience);
 
-            // Verify: AddAsync metodunun bir kez çağrıldığını doğruluyoruz.
             _mockJobRepository.Verify(repo => repo.AddAsync(It.IsAny<Job>()), Times.Once);
         }
 

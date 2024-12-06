@@ -12,23 +12,27 @@ using Xunit;
 using Core.Persistence.Extensions;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using TechCareer.Models.Dtos.VideoEducation;
+using Core.CrossCuttingConcerns.Serilog;
 
 namespace TechCareer.Tests.UnitTests
 {
     public class VideoEducationServiceTests
     {
         private readonly Mock<IVideoEducationRepository> _mockVideoEducationRepository;
+        private readonly Mock<LoggerServiceBase> _mockLogger;
         private readonly VideoEducationService _videoEducationService;
 
         public VideoEducationServiceTests()
         {
+         
             _mockVideoEducationRepository = new Mock<IVideoEducationRepository>();
-            _videoEducationService = new VideoEducationService(_mockVideoEducationRepository.Object);
+            _mockLogger = new Mock<LoggerServiceBase>();
+            _videoEducationService = new VideoEducationService(_mockVideoEducationRepository.Object, _mockLogger.Object);
         }
         [Fact]
         public async Task AddAsync_ShouldReturnAddedVideoEducation()
         {
-            // Arrange
+          
             var newVideoEducationDto = new VideoEducationAddRequestDto
             {
                 Title = "C# Tutorial",
@@ -56,17 +60,17 @@ namespace TechCareer.Tests.UnitTests
                     ProgrammingLanguage = "C#"
                 });
 
-            // Act
-            var result = await _videoEducationService.AddAsync(newVideoEducationDto); // Pass DTO here
+        
+            var result = await _videoEducationService.AddAsync(newVideoEducationDto); 
 
-            // Assert
+         
             Assert.NotNull(result);
             Assert.Equal("C# Tutorial", result.Title);
         }
         [Fact]
         public async Task DeleteAsync_ShouldMarkAsDeleted_WhenNotPermanent()
         {
-            // Arrange
+         
             var videoEducation = new VideoEducation
             {
                 Id = 1,
@@ -78,20 +82,20 @@ namespace TechCareer.Tests.UnitTests
                 ImageUrl = "image_url",
                 InstructorId = Guid.NewGuid(),
                 ProgrammingLanguage = "JavaScript",
-                IsDeleted = false // Initially not deleted
+                IsDeleted = false 
             };
 
-            // Mock GetAsync to return the videoEducation entity
+       
             _mockVideoEducationRepository
                 .Setup(repository => repository.GetAsync(It.IsAny<Expression<Func<VideoEducation, bool>>>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(videoEducation);
 
-            // Mock DeleteAsync to simulate marking the entity as deleted (without permanent delete)
+         
             _mockVideoEducationRepository
-                .Setup(repository => repository.DeleteAsync(It.IsAny<VideoEducation>(), false)) // Passing 'false' for permanent
+                .Setup(repository => repository.DeleteAsync(It.IsAny<VideoEducation>(), false)) 
                 .ReturnsAsync(new VideoEducation { Id = 1, IsDeleted = true });
 
-            // Act
+       
             var result = await _videoEducationService.DeleteAsync(new VideoEducationRequestDto { Id = 1 });
             Assert.NotNull(result); 
             Assert.Equal(1, result.Id);
@@ -107,7 +111,7 @@ namespace TechCareer.Tests.UnitTests
         [Fact]
         public async Task GetAsync_ShouldReturnVideoEducation()
         {
-            // Arrange
+          
             var videoEducation = new VideoEducation
             {
                 Id = 1,
@@ -125,10 +129,10 @@ namespace TechCareer.Tests.UnitTests
                 .Setup(repository => repository.GetAsync(It.IsAny<Expression<Func<VideoEducation, bool>>>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(videoEducation);
 
-            // Act
+           
             var result = await _videoEducationService.GetAsync(x => x.Id == 1);
 
-            // Assert
+           
             Assert.NotNull(result);
             Assert.Equal("Python Tutorial", result.Title);
         }
@@ -136,7 +140,7 @@ namespace TechCareer.Tests.UnitTests
         [Fact]
         public async Task GetPaginateAsync_ShouldReturnPaginatedResults()
         {
-            // Arrange
+         
             var videoEducations = new List<VideoEducation>
             {
                 new VideoEducation { Id = 1, Title = "C# Tutorial" },
@@ -155,10 +159,10 @@ namespace TechCareer.Tests.UnitTests
                     Size = 2
                 });
 
-            // Act
+         
             var result = await _videoEducationService.GetPaginateAsync(index: 0, size: 2);
 
-            // Assert
+      
             Assert.NotNull(result);
             Assert.Equal(3, result.TotalItems);
             Assert.Equal(2, result.Items.Count);
@@ -167,28 +171,28 @@ namespace TechCareer.Tests.UnitTests
         [Fact]
         public async Task UpdateAsync_ShouldThrowApplicationException_WhenVideoEducationNotFound()
         {
-            // Arrange
+         
             var videoEducationUpdateDto = new VideoEducationUpdateRequestDto
             {
                 Id = 1,
                 Title = "C# Tutorial"
-                // Diğer özellikleri burada ekleyebilirsiniz.
+               
             };
 
-            // _videoEducationRepository.GetAsync metodunu, null dönecek şekilde ayarlıyoruz.
+         
             _mockVideoEducationRepository.Setup(repo => repo.GetAsync(
                 It.IsAny<Expression<Func<VideoEducation, bool>>>(),
-                true,  // include parametresi
-                false, // withDeleted parametresi
-                true,  // enableTracking parametresi
-                It.IsAny<CancellationToken>() // cancellationToken parametresi
+                true,  
+                false, 
+                true, 
+                It.IsAny<CancellationToken>() 
             ))
-            .ReturnsAsync((VideoEducation?)null);  // Burada null döndürülmesi sağlanıyor.
+            .ReturnsAsync((VideoEducation?)null);  
 
-            // Act & Assert
+    
             var exception = await Assert.ThrowsAsync<ApplicationException>(() => _videoEducationService.UpdateAsync(videoEducationUpdateDto));
 
-            // Assert: Hata mesajını kontrol ediyoruz.
+        
             Assert.Equal("Video Education not found.", exception.Message);
         }
 

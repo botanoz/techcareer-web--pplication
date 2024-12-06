@@ -27,7 +27,7 @@ namespace TechCareer.Service.Tests.UnitTests
         [Fact]
         public async Task CreateAccessToken_ShouldReturnAccessToken()
         {
-            // Arrange
+          
             var user = new User
             {
                 Id = 1,
@@ -46,12 +46,11 @@ namespace TechCareer.Service.Tests.UnitTests
         }
     };
 
-            // Mock the repository to return the userOperationClaims as an async list
+            
             _mockUserOperationClaimRepository
                 .Setup(repo => repo.Query())
-                .Returns(userOperationClaims.AsQueryable().AsNoTracking()); // This line might cause issues if not async, so we handle the issue below
-
-            // Mock the helper method
+                .Returns(userOperationClaims.AsQueryable().AsNoTracking()); 
+         
             var expectedAccessToken = new AccessToken
             {
                 Token = "mockedToken",
@@ -62,15 +61,14 @@ namespace TechCareer.Service.Tests.UnitTests
                 .Setup(helper => helper.CreateToken(It.IsAny<User>(), It.IsAny<List<OperationClaim>>()))
                 .Returns(expectedAccessToken);
 
-            // Act
+          
             var result = await _userWithTokenService.CreateAccessToken(user);
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(expectedAccessToken.Token, result.Token);
             Assert.Equal(expectedAccessToken.Expiration, result.Expiration);
 
-            // Verify the method calls
+           
             _mockUserOperationClaimRepository.Verify(repo => repo.Query(), Times.Once);
             _mockTokenHelper.Verify(helper => helper.CreateToken(user, It.IsAny<List<OperationClaim>>()), Times.Once);
         }
