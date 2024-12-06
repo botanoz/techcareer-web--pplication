@@ -12,18 +12,26 @@ using Xunit;
 using Core.Persistence.Extensions;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using TechCareer.Models.Dtos.VideoEducation;
+using Core.CrossCuttingConcerns.Serilog;
 
 namespace TechCareer.Tests.UnitTests
 {
     public class VideoEducationServiceTests
     {
         private readonly Mock<IVideoEducationRepository> _mockVideoEducationRepository;
+        private readonly Mock<LoggerServiceBase> _mockLogger;
         private readonly VideoEducationService _videoEducationService;
 
         public VideoEducationServiceTests()
         {
+            // IVideoEducationRepository mock'ı oluşturuluyor
             _mockVideoEducationRepository = new Mock<IVideoEducationRepository>();
-            _videoEducationService = new VideoEducationService(_mockVideoEducationRepository.Object);
+
+            // LoggerServiceBase mock'ı oluşturuluyor
+            _mockLogger = new Mock<LoggerServiceBase>();
+
+            // VideoEducationService'e gerekli bağımlılıklar ile mock'ları ekliyoruz
+            _videoEducationService = new VideoEducationService(_mockVideoEducationRepository.Object, _mockLogger.Object);
         }
         [Fact]
         public async Task AddAsync_ShouldReturnAddedVideoEducation()
