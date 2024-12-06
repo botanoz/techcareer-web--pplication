@@ -30,10 +30,6 @@ namespace TechCareer.API.Controllers
         public async Task<IActionResult> GetById(Guid id)
         {
             var instructor = await _instructorService.GetAsync(x => x.Id == id);
-
-            if (instructor == null)
-                return NotFound(new { Message = "Instructor not found." });
-
             return Ok(instructor);
         }
 
@@ -41,46 +37,27 @@ namespace TechCareer.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] InstructorAddRequestDto instructorAddRequestDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var addedInstructor = await _instructorService.AddAsync(instructorAddRequestDto);
             return CreatedAtAction(nameof(GetById), new { id = addedInstructor.Id }, addedInstructor);
         }
 
         // Eğitmen günceller
-        [HttpPut]
-        public async Task<IActionResult> Update([FromBody] InstructorUpdateRequestDto instructorUpdateRequestDto)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] InstructorUpdateRequestDto instructorUpdateRequestDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            try
-            {
-                var updatedInstructor = await _instructorService.UpdateAsync(instructorUpdateRequestDto);
-                return Ok(updatedInstructor);
-            }
-            catch (ApplicationException ex)
-            {
-                return NotFound(new { Message = ex.Message });
-            }
+            instructorUpdateRequestDto.Id = id;
+            var updatedInstructor = await _instructorService.UpdateAsync(instructorUpdateRequestDto);
+            return Ok(updatedInstructor);
         }
 
         // Eğitmen siler
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id, [FromQuery] bool permanent = false)
         {
-            try
-            {
-                var deletedInstructor = await _instructorService.DeleteAsync(
-                    new InstructorRequestDto { Id = id }, permanent);
+            var deletedInstructor = await _instructorService.DeleteAsync(
+                new InstructorRequestDto { Id = id }, permanent);
 
-                return Ok(deletedInstructor);
-            }
-            catch (ApplicationException ex)
-            {
-                return NotFound(new { Message = ex.Message });
-            }
+            return Ok(deletedInstructor);
         }
 
         // Sayfalandırılmış eğitmen listesi

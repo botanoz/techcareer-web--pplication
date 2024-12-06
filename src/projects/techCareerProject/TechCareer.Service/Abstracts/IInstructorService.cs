@@ -39,7 +39,6 @@ namespace TechCareer.Service.Abstracts
         Task<InstructorResponseDto> AddAsync(InstructorAddRequestDto instructorAddRequestDto);
         Task<InstructorResponseDto> UpdateAsync(InstructorUpdateRequestDto instructorUpdateRequestDto);
         Task<InstructorResponseDto> DeleteAsync(InstructorRequestDto instructorRequestDto, bool permanent = false);
-        Task<InstructorResponseDto?> FindInstructorAsync(InstructorRequestDto instructorRequestDto);
 
     }
 }
