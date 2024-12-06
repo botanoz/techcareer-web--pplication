@@ -17,47 +17,46 @@ namespace TechCareer.Service.Tests.UnitTests
     public class OperationClaimServiceTests
     {
         private readonly Mock<IOperationClaimRepository> _mockOperationClaimRepository;
-        private readonly Mock<LoggerServiceBase> _mockLogger; // LoggerServiceBase için Mock ekledim
+        private readonly Mock<LoggerServiceBase> _mockLogger; 
         private readonly OperationClaimService _operationClaimService;
 
         public OperationClaimServiceTests()
         {
-            // IOperationClaimRepository mock'ı oluşturuyoruz
+           
             _mockOperationClaimRepository = new Mock<IOperationClaimRepository>();
 
-            // LoggerServiceBase mock'ı oluşturuyoruz
+    
             _mockLogger = new Mock<LoggerServiceBase>();
 
-            // OperationClaimService'i doğru bağımlılıkla oluşturuyoruz
+          
             _operationClaimService = new OperationClaimService(_mockOperationClaimRepository.Object, _mockLogger.Object);
         }
 
         [Fact]
         public async Task AddAsync_ShouldReturnAddedOperationClaim()
         {
-            // Arrange
+     
             var operationClaim = new OperationClaim { Id = 1, Name = "Admin" };
 
-            // Mock'ı ayarlıyoruz
+      
             _mockOperationClaimRepository.Setup(repo => repo.AddAsync(It.IsAny<OperationClaim>()))
                                           .ReturnsAsync(operationClaim);
 
-            // Logger mock'ını ayarlıyoruz, log metodlarının hiçbiri çağrılmasın diye boş bir setup yapıyoruz
             _mockLogger.Setup(logger => logger.Info(It.IsAny<string>()));
             _mockLogger.Setup(logger => logger.Error(It.IsAny<string>()));
 
-            // Act
+       
             var result = await _operationClaimService.AddAsync(new OperationClaimAddRequestDto { Name = "Admin" });
 
-            // Assert
+      
             result.Should().BeEquivalentTo(new OperationClaimResponseDto { Id = 1, Name = "Admin" });
 
-            // Repository'nin doğru bir şekilde çağrıldığını kontrol ediyoruz
+    
             _mockOperationClaimRepository.Verify(repo => repo.AddAsync(It.IsAny<OperationClaim>()), Times.Once);
 
-            // Logger'ın logları düzgün bir şekilde çağırıp çağırmadığını kontrol ediyoruz
-            _mockLogger.Verify(logger => logger.Info(It.IsAny<string>()), Times.Once);  // Info logu çağrılmış mı?
-            _mockLogger.Verify(logger => logger.Error(It.IsAny<string>()), Times.Never); // Error logu çağrılmamalı
+       
+            _mockLogger.Verify(logger => logger.Info(It.IsAny<string>()), Times.Once); 
+            _mockLogger.Verify(logger => logger.Error(It.IsAny<string>()), Times.Never); 
         }
 
         [Fact]
@@ -118,7 +117,7 @@ namespace TechCareer.Service.Tests.UnitTests
             var result = await _operationClaimService.DeleteAsync(deleteRequestDto);
 
             // Assert
-            result.Name.Should().Be(operationClaim.Name);  // Name'ı doğrulama
+            result.Name.Should().Be(operationClaim.Name);
             _mockOperationClaimRepository.Verify(repo => repo.GetAsync(It.IsAny<Expression<Func<OperationClaim, bool>>>(),
                                                                          true, false, true, It.IsAny<CancellationToken>()), Times.Once);
             _mockOperationClaimRepository.Verify(repo => repo.UpdateAsync(It.IsAny<OperationClaim>()), Times.Once);
@@ -192,24 +191,24 @@ namespace TechCareer.Service.Tests.UnitTests
 
             _mockOperationClaimRepository.Setup(repo => repo.GetListAsync(
                     It.IsAny<Expression<Func<OperationClaim, bool>>>(),
-                    null,  // Sort expression: null, no sorting
-                    true,  // withDeleted: true
-                    false, // enableTracking: false
-                    true,  // include: true
-                    It.IsAny<CancellationToken>()  // Cancellation token
+                    null, 
+                    true,  
+                    false,
+                    true,  
+                    It.IsAny<CancellationToken>()  
                 ))
-                .ReturnsAsync(operationClaims);  // Return mocked data
+                .ReturnsAsync(operationClaims);  
 
-            // Act
+        
             var result = await _operationClaimService.GetPaginateAsync(index: 0, size: 2);
 
-            // Assert
-            Assert.NotNull(result);  // Ensure result is not null
+          
+            Assert.NotNull(result); 
             result.Items.Should().BeEquivalentTo(
                 operationClaims.Select(c => new OperationClaimResponseDto { Id = c.Id, Name = c.Name }).ToList()
             );
-            result.TotalItems.Should().Be(2);  // Total items should be 2
-            result.TotalPages.Should().Be(1);  // Total pages should be 1
+            result.TotalItems.Should().Be(2); 
+            result.TotalPages.Should().Be(1);  
         }
 
     }

@@ -20,18 +20,18 @@ namespace TechCareer.Service.UnitTests
 
         public EventServiceTests()
         {
-            // Mocking dependencies
+          
             _mockEventRepository = new Mock<IEventRepository>();
             _mockLogger = new Mock<LoggerServiceBase>();
 
-            // Creating the EventService instance with mocked dependencies
+           
             _eventService = new EventService(_mockEventRepository.Object, _mockLogger.Object);
         }
 
         [Fact]
         public async Task AddAsync_ShouldAddEvent()
         {
-            // Arrange
+          
             var eventAddRequestDto = new EventAddRequestDto
             {
                 Title = "Test Event",
@@ -46,7 +46,7 @@ namespace TechCareer.Service.UnitTests
 
             var eventEntity = new Event
             {
-                Id = Guid.NewGuid(), // Updated to Guid
+                Id = Guid.NewGuid(), 
                 Title = eventAddRequestDto.Title,
                 Description = eventAddRequestDto.Description,
                 ImageUrl = eventAddRequestDto.ImageUrl,
@@ -57,25 +57,24 @@ namespace TechCareer.Service.UnitTests
                 CategoryId = eventAddRequestDto.CategoryId
             };
 
-            // Setup mock repository to return the added event
             _mockEventRepository
                 .Setup(repo => repo.AddAsync(It.IsAny<Event>()))
                 .ReturnsAsync(eventEntity);
 
-            // Act
+           
             var result = await _eventService.AddAsync(eventAddRequestDto);
 
-            // Assert
+       
             Assert.NotNull(result);
             Assert.Equal("Test Event", result.Title);
-            _mockLogger.Verify(logger => logger.Info(It.IsAny<string>()), Times.Once); // Verifying logger call
+            _mockLogger.Verify(logger => logger.Info(It.IsAny<string>()), Times.Once); 
         }
 
         [Fact]
         public async Task DeleteAsync_ShouldDeleteEvent()
         {
-            // Arrange
-            var eventRequestDto = new EventRequestDto { Id = Guid.NewGuid() }; // Updated to Guid
+           
+            var eventRequestDto = new EventRequestDto { Id = Guid.NewGuid() }; 
             var eventEntity = new Event { Id = eventRequestDto.Id, Title = "Test Event", IsDeleted = false };
 
             _mockEventRepository
@@ -88,22 +87,21 @@ namespace TechCareer.Service.UnitTests
           .ReturnsAsync(It.IsAny<Event>());
 
 
-            // Act
             var result = await _eventService.DeleteAsync(eventRequestDto);
 
-            // Assert
+         
             Assert.Equal(eventRequestDto.Id, result.Id);
-            _mockEventRepository.Verify(repo => repo.DeleteAsync(It.IsAny<Event>(), false), Times.Once); // Verifying delete
-            _mockLogger.Verify(logger => logger.Info(It.IsAny<string>()), Times.Once); // Verifying logger call
+            _mockEventRepository.Verify(repo => repo.DeleteAsync(It.IsAny<Event>(), false), Times.Once); 
+            _mockLogger.Verify(logger => logger.Info(It.IsAny<string>()), Times.Once); 
         }
 
         [Fact]
         public async Task UpdateAsync_ShouldUpdateEvent()
         {
-            // Arrange
+            
             var eventUpdateRequestDto = new EventUpdateRequestDto
             {
-                Id = Guid.NewGuid(), // Updated to Guid
+                Id = Guid.NewGuid(), 
                 Title = "Updated Event",
                 Description = "Updated Description",
                 ImageUrl = "Updated Image URL",
@@ -116,7 +114,7 @@ namespace TechCareer.Service.UnitTests
 
             var existingEvent = new Event
             {
-                Id = eventUpdateRequestDto.Id, // Updated to Guid
+                Id = eventUpdateRequestDto.Id,
                 Title = "Old Title",
                 Description = "Old Description",
                 ImageUrl = "Old Image URL",
@@ -135,24 +133,24 @@ namespace TechCareer.Service.UnitTests
                 .Returns(Task.FromResult(It.IsAny<Event>()));
             
 
-            // Act
+         
             var result = await _eventService.UpdateAsync(eventUpdateRequestDto);
 
-            // Assert
+        
             Assert.Equal("Updated Event", result.Title);
             Assert.Equal("Updated Description", result.Description);
-            _mockEventRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Event>()), Times.Once); // Verifying update
-            _mockLogger.Verify(logger => logger.Info(It.IsAny<string>()), Times.Once); // Verifying logger call
+            _mockEventRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Event>()), Times.Once); 
+            _mockLogger.Verify(logger => logger.Info(It.IsAny<string>()), Times.Once); 
         }
 
         [Fact]
         public async Task FindEventAsync_ShouldReturnEvent()
         {
-            // Arrange
-            var eventRequestDto = new EventRequestDto { Id = Guid.NewGuid() }; // Updated to Guid
+          
+            var eventRequestDto = new EventRequestDto { Id = Guid.NewGuid() };
             var eventEntity = new Event
             {
-                Id = eventRequestDto.Id, // Updated to Guid
+                Id = eventRequestDto.Id,
                 Title = "Test Event",
                 Description = "Description",
                 ImageUrl = "Image URL",
@@ -163,25 +161,25 @@ namespace TechCareer.Service.UnitTests
                 CategoryId = 1
             };
 
-            var mockLogger = new Mock<LoggerServiceBase>(MockBehavior.Strict); // Use MockBehavior.Strict
-            mockLogger.Setup(logger => logger.Info(It.IsAny<string>())).Verifiable(); // Setup Info method for logging
+            var mockLogger = new Mock<LoggerServiceBase>(MockBehavior.Strict); 
+            mockLogger.Setup(logger => logger.Info(It.IsAny<string>())).Verifiable(); 
 
             _mockEventRepository
                 .Setup(repo => repo.GetAsync(It.Is<Expression<Func<Event, bool>>>(expr => expr.Compile().Invoke(eventEntity)), true, false, true, default))
                 .ReturnsAsync(eventEntity);
 
-            var eventService = new EventService(_mockEventRepository.Object, mockLogger.Object); // Inject mock logger
+            var eventService = new EventService(_mockEventRepository.Object, mockLogger.Object); 
 
-            // Act
+         
             var result = await eventService.FindEventAsync(eventRequestDto);
 
-            // Assert
-            Assert.Equal("Test Event", result.Title); // Verify the event title
+          
+            Assert.Equal("Test Event", result.Title);
 
-            // Verify that the GetAsync method was called with the correct parameters
+           
             _mockEventRepository.Verify(repo => repo.GetAsync(It.IsAny<Expression<Func<Event, bool>>>(), true, false, true, default), Times.Once);
 
-            // Verify that the Info method was called once
+           
             mockLogger.Verify(logger => logger.Info(It.IsAny<string>()), Times.Once);
         }
 

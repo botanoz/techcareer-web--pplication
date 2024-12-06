@@ -25,22 +25,21 @@ public class UserServiceTests
     [Fact]
     public async Task GetAsync_ShouldReturnUser_WhenUserExists()
     {
-        // Arrange
+       
         var userPredicate = (Expression<Func<User, bool>>)(u => u.Email == "test@example.com");
         var expectedUser = new User { Id = 1, Email = "test@example.com" };
 
         _mockUserRepository.Setup(repo => repo.GetAsync(
             userPredicate,
-            false, // include default değeri
-            false, // withDeleted default değeri
-            true,  // enableTracking default değeri
-            default)) // CancellationToken default
+            false,
+            false, 
+            true,  
+            default)) 
             .ReturnsAsync(expectedUser);
 
-        // Act
+      
         var result = await _userService.GetAsync(userPredicate);
 
-        // Assert
         Assert.NotNull(result);
         Assert.Equal(expectedUser.Email, result?.Email);
     }
@@ -48,7 +47,7 @@ public class UserServiceTests
     [Fact]
     public async Task GetPaginateAsync_ShouldReturnPaginatedUsers_WhenUsersExist()
     {
-        // Arrange
+      
         var userList = new List<User>
         {
             new User { Id = 1, Email = "user1@example.com" },
@@ -67,20 +66,20 @@ public class UserServiceTests
         };
 
         _mockUserRepository.Setup(repo => repo.GetPaginateAsync(
-            null, // predicate
-            null, // orderBy
-            false, // include
-            0,     // index
-            10,    // size
-            false, // withDeleted
-            true,  // enableTracking
-            default)) // CancellationToken default
+            null, 
+            null, 
+            false, 
+            0,    
+            10,    
+            false, 
+            true, 
+            default)) 
             .ReturnsAsync(paginateResult);
 
-        // Act
+    
         var result = await _userService.GetPaginateAsync();
 
-        // Assert
+       
         Assert.NotNull(result);
         Assert.Equal(userList.Count, result.Items.Count);
         Assert.Equal(1, result.Pages);
@@ -90,7 +89,7 @@ public class UserServiceTests
     [Fact]
     public async Task AddAsync_ShouldAddUser_WhenValidUserIsProvided()
     {
-        // Arrange
+      
         var newUser = new User { Id = 1, Email = "newuser@example.com" };
 
         _mockUserBusinessRules
@@ -101,10 +100,10 @@ public class UserServiceTests
             .Setup(r => r.AddAsync(It.IsAny<User>()))
             .ReturnsAsync(newUser);
 
-        // Act
+     
         var result = await _userService.AddAsync(newUser);
 
-        // Assert
+      
         _mockUserBusinessRules.Verify();
         _mockUserRepository.Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Once);
         Assert.NotNull(result);
@@ -114,7 +113,7 @@ public class UserServiceTests
     [Fact]
     public async Task UpdateAsync_ShouldUpdateUser_WhenValidUserIsProvided()
     {
-        // Arrange
+      
         var updatedUser = new User { Id = 1, Email = "updateduser@example.com" };
 
         _mockUserBusinessRules
@@ -125,10 +124,9 @@ public class UserServiceTests
             .Setup(r => r.UpdateAsync(It.IsAny<User>()))
             .ReturnsAsync(updatedUser);
 
-        // Act
+
         var result = await _userService.UpdateAsync(updatedUser);
 
-        // Assert
         _mockUserBusinessRules.Verify();
         _mockUserRepository.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Once);
         Assert.NotNull(result);
@@ -138,17 +136,17 @@ public class UserServiceTests
     [Fact]
     public async Task DeleteAsync_ShouldDeleteUser_WhenUserIsValid()
     {
-        // Arrange
+      
         var userToDelete = new User { Id = 1, Email = "deleteuser@example.com" };
 
         _mockUserRepository
-            .Setup(repo => repo.DeleteAsync(It.IsAny<User>(), false)) // `permanent` default değer
+            .Setup(repo => repo.DeleteAsync(It.IsAny<User>(), false)) 
             .ReturnsAsync(userToDelete);
 
-        // Act
+   
         var result = await _userService.DeleteAsync(userToDelete);
 
-        // Assert
+      
         Assert.NotNull(result);
         Assert.Equal(userToDelete.Id, result.Id);
         Assert.Equal(userToDelete.Email, result.Email);

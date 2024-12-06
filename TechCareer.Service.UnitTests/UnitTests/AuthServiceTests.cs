@@ -32,10 +32,10 @@ namespace TechCareer.Service.Tests.UnitTests
             _userServiceMock = new Mock<IUserService>();
             _tokenServiceMock = new Mock<IUserWithTokenService>();
             _mapperMock = new Mock<IMapper>();
-            _rulesMock = new Mock<IUserBusinessRules>();  // Yeni mock nesnesi
+            _rulesMock = new Mock<IUserBusinessRules>();  
 
             _authService = new AuthService(
-                _rulesMock.Object,            // Güncellendi
+                _rulesMock.Object,        
                 _tokenServiceMock.Object,
                 _userServiceMock.Object,
                 _mapperMock.Object
@@ -45,13 +45,13 @@ namespace TechCareer.Service.Tests.UnitTests
         [Fact]
         public async Task LoginAsync_ShouldReturnAccessToken_WhenUserExistsAndPasswordMatches()
         {
-            // Arrange
+        
             var dto = new UserForLoginDto { Email = "test@example.com", Password = "password123" };
 
-            // User nesnesini int ID ile oluşturuyoruz.
+          
             var user = new User
             {
-                Id = 1, // Id'yi int olarak atıyoruz
+                Id = 1, 
                 Email = dto.Email,
                 PasswordHash = new byte[0],
                 PasswordSalt = new byte[0]
@@ -59,13 +59,13 @@ namespace TechCareer.Service.Tests.UnitTests
 
             var accessToken = new AccessToken { Token = "test-token", Expiration = DateTime.UtcNow.AddHours(1) };
 
-            // Kullanıcıyı e-posta ile bulmaya yönelik doğru expression kullanıyoruz
+           
             _userServiceMock.Setup(u => u.GetAsync(
             It.Is<Expression<Func<User, bool>>>(e => e.Compile()(new User { Email = dto.Email })),
-           false,  // include
-           false,  // withDeleted
-           true,   // enableTracking
-            It.IsAny<CancellationToken>() // cancellationToken
+           false,  
+           false,  
+           true,  
+            It.IsAny<CancellationToken>() 
             )).ReturnsAsync(user);
 
 
@@ -79,11 +79,11 @@ namespace TechCareer.Service.Tests.UnitTests
             // Assert
             result.Should().BeEquivalentTo(accessToken);
             _userServiceMock.Verify(u => u.GetAsync(
-             It.IsAny<Expression<Func<User, bool>>>(), // predicate
-             It.IsAny<bool>(),                         // include
-             It.IsAny<bool>(),                         // withDeleted
-             It.IsAny<bool>(),                         // enableTracking
-             It.IsAny<CancellationToken>()            // cancellationToken
+             It.IsAny<Expression<Func<User, bool>>>(), 
+             It.IsAny<bool>(),                        
+             It.IsAny<bool>(),                     
+             It.IsAny<bool>(),                       
+             It.IsAny<CancellationToken>()         
           ), Times.Once);
 
             _tokenServiceMock.Verify(t => t.CreateAccessToken(user), Times.Once);
@@ -92,7 +92,7 @@ namespace TechCareer.Service.Tests.UnitTests
         [Fact]
         public async Task RegisterAsync_ShouldReturnAccessToken_WhenUserIsCreated()
         {
-            // Arrange
+           
             var dto = new UserForRegisterDto
             {
                 Email = "test@example.com",
@@ -101,17 +101,16 @@ namespace TechCareer.Service.Tests.UnitTests
                 Password = "password123"
             };
 
-            // User nesnesini int ID ile oluşturuyoruz
+        
             var user = new User { Id = 1, Email = dto.Email, FirstName = dto.FirstName, LastName = dto.LastName };
             var accessToken = new AccessToken { Token = "test-token", Expiration = DateTime.UtcNow.AddHours(1) };
 
             _userServiceMock.Setup(u => u.AddAsync(It.IsAny<User>())).ReturnsAsync(user);
             _tokenServiceMock.Setup(t => t.CreateAccessToken(user)).ReturnsAsync(accessToken);
 
-            // Act
+           
             var result = await _authService.RegisterAsync(dto, CancellationToken.None);
 
-            // Assert
             result.Should().BeEquivalentTo(accessToken);
             _userServiceMock.Verify(u => u.AddAsync(It.IsAny<User>()), Times.Once);
             _tokenServiceMock.Verify(t => t.CreateAccessToken(user), Times.Once);
@@ -120,7 +119,7 @@ namespace TechCareer.Service.Tests.UnitTests
         [Fact]
         public async Task GetAllPaginateAsync_ShouldReturnPaginatedUserResponses()
         {
-            // Arrange
+           
             int page = 1, size = 10;
             var users = new Paginate<User>
             {
@@ -139,32 +138,32 @@ namespace TechCareer.Service.Tests.UnitTests
             };
 
             _userServiceMock.Setup(u => u.GetPaginateAsync(
-                It.IsAny<Expression<Func<User, bool>>>(),  // predicate
-                 It.IsAny<Func<IQueryable<User>, IOrderedQueryable<User>>>(), // orderBy
-              false,                                     // include
-               page,                                      // index
-               size,                                      // size
-             false,                                     // withDeleted
-                true,                                      // enableTracking
-             It.IsAny<CancellationToken>()             // cancellationToken
+                It.IsAny<Expression<Func<User, bool>>>(),  
+                 It.IsAny<Func<IQueryable<User>, IOrderedQueryable<User>>>(), 
+              false,                                
+               page,                                    
+               size,                                     
+             false,                                     
+                true,                                     
+             It.IsAny<CancellationToken>()            
             )).ReturnsAsync(users);
 
             _mapperMock.Setup(m => m.Map<Paginate<UserResponseDto>>(users)).Returns(userResponses);
 
-            // Act
+          
             var result = await _authService.GetAllPaginateAsync(page, size);
 
-            // Assert
+         
             result.Should().BeEquivalentTo(userResponses);
             _userServiceMock.Verify(u => u.GetPaginateAsync(
-               It.IsAny<Expression<Func<User, bool>>>(),  // predicate
-               It.IsAny<Func<IQueryable<User>, IOrderedQueryable<User>>>(), // orderBy
-               false,                                     // include
-               page,                                      // index
-               size,                                      // size
-               false,                                     // withDeleted
-               true,                                      // enableTracking
-               It.IsAny<CancellationToken>()             // cancellationToken
+               It.IsAny<Expression<Func<User, bool>>>(), 
+               It.IsAny<Func<IQueryable<User>, IOrderedQueryable<User>>>(), 
+               false,                                  
+               page,                                  
+               size,                                  
+               false,                                 
+               true,                                   
+               It.IsAny<CancellationToken>()            
               ), Times.Once);
 
             _mapperMock.Verify(m => m.Map<Paginate<UserResponseDto>>(users), Times.Once);
