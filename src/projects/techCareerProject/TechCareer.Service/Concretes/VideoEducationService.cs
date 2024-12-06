@@ -1,4 +1,5 @@
-﻿using Core.Persistence.Extensions;
+﻿using Core.CrossCuttingConcerns.Serilog;
+using Core.Persistence.Extensions;
 using Core.Persistence.Repositories;
 using Core.Security.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -17,10 +18,12 @@ namespace TechCareer.Service.Concretes
     public class VideoEducationService : IVideoEducationService
     {
         private readonly IVideoEducationRepository _videoEducationRepository;
+        private readonly LoggerServiceBase _logger;
 
-        public VideoEducationService(IVideoEducationRepository videoEducationRepository)
+        public VideoEducationService(IVideoEducationRepository videoEducationRepository, LoggerServiceBase logger)
         {
             _videoEducationRepository = videoEducationRepository;
+            _logger = logger;
         }
 
         // Get a single video education with optional filters
@@ -31,23 +34,32 @@ namespace TechCareer.Service.Concretes
             bool enableTracking = true,
             CancellationToken cancellationToken = default)
         {
-            var videoEducation = await _videoEducationRepository.GetAsync(predicate, withDeleted: withDeleted);
-
-            if (videoEducation == null)
-                return null;
-
-            return new VideoEducationResponseDto
+            try
             {
-                Id = videoEducation.Id,
-                Title = videoEducation.Title,
-                Description = videoEducation.Description,
-                TotalHour = videoEducation.TotalHour,
-                IsCertified = videoEducation.IsCertified,
-                Level = videoEducation.Level,
-                ImageUrl = videoEducation.ImageUrl,
-                InstructorId = videoEducation.InstructorId,
-                ProgrammingLanguage = videoEducation.ProgrammingLanguage
-            };
+                var videoEducation = await _videoEducationRepository.GetAsync(predicate, withDeleted: withDeleted);
+
+                if (videoEducation == null)
+                    return null;
+
+                return new VideoEducationResponseDto
+                {
+                    Id = videoEducation.Id,
+                    Title = videoEducation.Title,
+                    Description = videoEducation.Description,
+                    TotalHour = videoEducation.TotalHour,
+                    IsCertified = videoEducation.IsCertified,
+                    Level = videoEducation.Level,
+                    ImageUrl = videoEducation.ImageUrl,
+                    InstructorId = videoEducation.InstructorId,
+                    ProgrammingLanguage = videoEducation.ProgrammingLanguage
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Get paginated list of video educations
@@ -61,27 +73,36 @@ namespace TechCareer.Service.Concretes
             bool enableTracking = true,
             CancellationToken cancellationToken = default)
         {
-            var paginateResult = await _videoEducationRepository.GetPaginateAsync(predicate, index: index, size: size, enableTracking: enableTracking, withDeleted: withDeleted);
-
-            return new Paginate<VideoEducationResponseDto>
+            try
             {
-                Items = paginateResult.Items.Select(videoEducation => new VideoEducationResponseDto
+                var paginateResult = await _videoEducationRepository.GetPaginateAsync(predicate, index: index, size: size, enableTracking: enableTracking, withDeleted: withDeleted);
+
+                return new Paginate<VideoEducationResponseDto>
                 {
-                    Id = videoEducation.Id,
-                    Title = videoEducation.Title,
-                    Description = videoEducation.Description,
-                    TotalHour = videoEducation.TotalHour,
-                    IsCertified = videoEducation.IsCertified,
-                    Level = videoEducation.Level,
-                    ImageUrl = videoEducation.ImageUrl,
-                    InstructorId = videoEducation.InstructorId,
-                    ProgrammingLanguage = videoEducation.ProgrammingLanguage
-                }).ToList(),
-                Index = paginateResult.Index,
-                Size = paginateResult.Size,
-                TotalItems = paginateResult.TotalItems,
-                TotalPages = paginateResult.TotalPages
-            };
+                    Items = paginateResult.Items.Select(videoEducation => new VideoEducationResponseDto
+                    {
+                        Id = videoEducation.Id,
+                        Title = videoEducation.Title,
+                        Description = videoEducation.Description,
+                        TotalHour = videoEducation.TotalHour,
+                        IsCertified = videoEducation.IsCertified,
+                        Level = videoEducation.Level,
+                        ImageUrl = videoEducation.ImageUrl,
+                        InstructorId = videoEducation.InstructorId,
+                        ProgrammingLanguage = videoEducation.ProgrammingLanguage
+                    }).ToList(),
+                    Index = paginateResult.Index,
+                    Size = paginateResult.Size,
+                    TotalItems = paginateResult.TotalItems,
+                    TotalPages = paginateResult.TotalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Get list of video educations
@@ -93,119 +114,161 @@ namespace TechCareer.Service.Concretes
             bool enableTracking = true,
             CancellationToken cancellationToken = default)
         {
-            var videoEducations = await _videoEducationRepository.GetListAsync(predicate, orderBy, enableTracking, withDeleted);
-
-            return videoEducations.Select(videoEducation => new VideoEducationResponseDto
+            try
             {
-                Id = videoEducation.Id,
-                Title = videoEducation.Title,
-                Description = videoEducation.Description,
-                TotalHour = videoEducation.TotalHour,
-                IsCertified = videoEducation.IsCertified,
-                Level = videoEducation.Level,
-                ImageUrl = videoEducation.ImageUrl,
-                InstructorId = videoEducation.InstructorId,
-                ProgrammingLanguage = videoEducation.ProgrammingLanguage
-            }).ToList();
+                var videoEducations = await _videoEducationRepository.GetListAsync(predicate, orderBy, enableTracking, withDeleted);
+
+                return videoEducations.Select(videoEducation => new VideoEducationResponseDto
+                {
+                    Id = videoEducation.Id,
+                    Title = videoEducation.Title,
+                    Description = videoEducation.Description,
+                    TotalHour = videoEducation.TotalHour,
+                    IsCertified = videoEducation.IsCertified,
+                    Level = videoEducation.Level,
+                    ImageUrl = videoEducation.ImageUrl,
+                    InstructorId = videoEducation.InstructorId,
+                    ProgrammingLanguage = videoEducation.ProgrammingLanguage
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Add a new video education
         public async Task<VideoEducationResponseDto> AddAsync(VideoEducationAddRequestDto videoEducationAddRequestDto)
         {
-            var videoEducation = new VideoEducation
+            try
             {
-                Title = videoEducationAddRequestDto.Title,
-                Description = videoEducationAddRequestDto.Description,
-                TotalHour = videoEducationAddRequestDto.TotalHour,
-                IsCertified = videoEducationAddRequestDto.IsCertified,
-                Level = videoEducationAddRequestDto.Level,
-                ImageUrl = videoEducationAddRequestDto.ImageUrl,
-                InstructorId = videoEducationAddRequestDto.InstructorId,
-                ProgrammingLanguage = videoEducationAddRequestDto.ProgrammingLanguage
-            };
+                var videoEducation = new VideoEducation
+                {
+                    Title = videoEducationAddRequestDto.Title,
+                    Description = videoEducationAddRequestDto.Description,
+                    TotalHour = videoEducationAddRequestDto.TotalHour,
+                    IsCertified = videoEducationAddRequestDto.IsCertified,
+                    Level = videoEducationAddRequestDto.Level,
+                    ImageUrl = videoEducationAddRequestDto.ImageUrl,
+                    InstructorId = videoEducationAddRequestDto.InstructorId,
+                    ProgrammingLanguage = videoEducationAddRequestDto.ProgrammingLanguage
+                };
 
-            var addedVideoEducation = await _videoEducationRepository.AddAsync(videoEducation);
+                var addedVideoEducation = await _videoEducationRepository.AddAsync(videoEducation);
 
-            return new VideoEducationResponseDto
+                _logger.Info("Info log: VideoEducation added.");
+
+                return new VideoEducationResponseDto
+                {
+                    Id = addedVideoEducation.Id,
+                    Title = addedVideoEducation.Title,
+                    Description = addedVideoEducation.Description,
+                    TotalHour = addedVideoEducation.TotalHour,
+                    IsCertified = addedVideoEducation.IsCertified,
+                    Level = addedVideoEducation.Level,
+                    ImageUrl = addedVideoEducation.ImageUrl,
+                    InstructorId = addedVideoEducation.InstructorId,
+                    ProgrammingLanguage = addedVideoEducation.ProgrammingLanguage
+                };
+            }
+            catch (Exception ex)
             {
-                Id = addedVideoEducation.Id,
-                Title = addedVideoEducation.Title,
-                Description = addedVideoEducation.Description,
-                TotalHour = addedVideoEducation.TotalHour,
-                IsCertified = addedVideoEducation.IsCertified,
-                Level = addedVideoEducation.Level,
-                ImageUrl = addedVideoEducation.ImageUrl,
-                InstructorId = addedVideoEducation.InstructorId,
-                ProgrammingLanguage = addedVideoEducation.ProgrammingLanguage
-            };
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Update an existing video education
         public async Task<VideoEducationResponseDto> UpdateAsync(VideoEducationUpdateRequestDto videoEducationUpdateRequestDto)
         {
-            var videoEducation = await _videoEducationRepository.GetAsync(x => x.Id == videoEducationUpdateRequestDto.Id);
-
-            if (videoEducation == null)
-                throw new ApplicationException("Video Education not found.");
-
-            videoEducation.Title = videoEducationUpdateRequestDto.Title;
-            videoEducation.Description = videoEducationUpdateRequestDto.Description;
-            videoEducation.TotalHour = videoEducationUpdateRequestDto.TotalHour;
-            videoEducation.IsCertified = videoEducationUpdateRequestDto.IsCertified;
-            videoEducation.Level = videoEducationUpdateRequestDto.Level;
-            videoEducation.ImageUrl = videoEducationUpdateRequestDto.ImageUrl;
-            videoEducation.InstructorId = videoEducationUpdateRequestDto.InstructorId;
-            videoEducation.ProgrammingLanguage = videoEducationUpdateRequestDto.ProgrammingLanguage;
-
-            var updatedVideoEducation = await _videoEducationRepository.UpdateAsync(videoEducation);
-
-            return new VideoEducationResponseDto
+            try
             {
-                Id = updatedVideoEducation.Id,
-                Title = updatedVideoEducation.Title,
-                Description = updatedVideoEducation.Description,
-                TotalHour = updatedVideoEducation.TotalHour,
-                IsCertified = updatedVideoEducation.IsCertified,
-                Level = updatedVideoEducation.Level,
-                ImageUrl = updatedVideoEducation.ImageUrl,
-                InstructorId = updatedVideoEducation.InstructorId,
-                ProgrammingLanguage = updatedVideoEducation.ProgrammingLanguage
-            };
+                var videoEducation = await _videoEducationRepository.GetAsync(x => x.Id == videoEducationUpdateRequestDto.Id);
+
+                if (videoEducation == null)
+                    throw new ApplicationException("Video Education not found.");
+
+                videoEducation.Title = videoEducationUpdateRequestDto.Title;
+                videoEducation.Description = videoEducationUpdateRequestDto.Description;
+                videoEducation.TotalHour = videoEducationUpdateRequestDto.TotalHour;
+                videoEducation.IsCertified = videoEducationUpdateRequestDto.IsCertified;
+                videoEducation.Level = videoEducationUpdateRequestDto.Level;
+                videoEducation.ImageUrl = videoEducationUpdateRequestDto.ImageUrl;
+                videoEducation.InstructorId = videoEducationUpdateRequestDto.InstructorId;
+                videoEducation.ProgrammingLanguage = videoEducationUpdateRequestDto.ProgrammingLanguage;
+
+                var updatedVideoEducation = await _videoEducationRepository.UpdateAsync(videoEducation);
+
+                _logger.Info("Info log: VideoEducation updated.");
+
+                return new VideoEducationResponseDto
+                {
+                    Id = updatedVideoEducation.Id,
+                    Title = updatedVideoEducation.Title,
+                    Description = updatedVideoEducation.Description,
+                    TotalHour = updatedVideoEducation.TotalHour,
+                    IsCertified = updatedVideoEducation.IsCertified,
+                    Level = updatedVideoEducation.Level,
+                    ImageUrl = updatedVideoEducation.ImageUrl,
+                    InstructorId = updatedVideoEducation.InstructorId,
+                    ProgrammingLanguage = updatedVideoEducation.ProgrammingLanguage
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Delete a video education
         public async Task<VideoEducationResponseDto> DeleteAsync(VideoEducationRequestDto videoEducationRequestDto, bool permanent = false)
         {
-            var videoEducation = await _videoEducationRepository.GetAsync(
-                x => x.Id == videoEducationRequestDto.Id,
-                withDeleted: true
-            );
-
-            if (videoEducation == null)
-                throw new ApplicationException("Video Education not found.");
-
-            if (permanent)
+            try
             {
-                await _videoEducationRepository.DeleteAsync(videoEducation, true);
+                var videoEducation = await _videoEducationRepository.GetAsync(
+                    x => x.Id == videoEducationRequestDto.Id,
+                    withDeleted: true
+                );
+
+                if (videoEducation == null)
+                    throw new ApplicationException("Video Education not found.");
+
+                if (permanent)
+                {
+                    await _videoEducationRepository.DeleteAsync(videoEducation, true);
+                }
+                else
+                {
+                    videoEducation.IsDeleted = true;
+                    await _videoEducationRepository.DeleteAsync(videoEducation);
+                }
+
+                _logger.Info("Info log: VideoEducation deleted.");
+
+                return new VideoEducationResponseDto
+                {
+                    Id = videoEducation.Id,
+                    Title = videoEducation.Title,
+                    Description = videoEducation.Description,
+                    TotalHour = videoEducation.TotalHour,
+                    IsCertified = videoEducation.IsCertified,
+                    Level = videoEducation.Level,
+                    ImageUrl = videoEducation.ImageUrl,
+                    InstructorId = videoEducation.InstructorId,
+                    ProgrammingLanguage = videoEducation.ProgrammingLanguage
+                };
             }
-            else
+            catch (Exception ex)
             {
-                videoEducation.IsDeleted = true;
-                await _videoEducationRepository.DeleteAsync(videoEducation);
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
             }
 
-            return new VideoEducationResponseDto
-            {
-                Id = videoEducation.Id,
-                Title = videoEducation.Title,
-                Description = videoEducation.Description,
-                TotalHour = videoEducation.TotalHour,
-                IsCertified = videoEducation.IsCertified,
-                Level = videoEducation.Level,
-                ImageUrl = videoEducation.ImageUrl,
-                InstructorId = videoEducation.InstructorId,
-                ProgrammingLanguage = videoEducation.ProgrammingLanguage
-            };
         }
     }
 }
