@@ -10,12 +10,14 @@ using Core.Security.Entities;
 using TechCareer.Models.Dtos.Instructor;
 using Xunit;
 using Core.Persistence.Extensions;
+using Core.CrossCuttingConcerns.Serilog;
 
 namespace TechCareer.Service.Tests.UnitTests
 {
     public class InstructorServiceTests
     {
         private readonly Mock<IInstructorRepository> _mockInstructorRepository;
+        private readonly Mock<LoggerServiceBase> _mockLogger; // LoggerServiceBase için Mock ekledim
         private readonly InstructorService _instructorService;
 
         public InstructorServiceTests()
@@ -23,10 +25,12 @@ namespace TechCareer.Service.Tests.UnitTests
             // IInstructorRepository mock'ı oluşturuyoruz
             _mockInstructorRepository = new Mock<IInstructorRepository>();
 
-            // InstructorService'i doğru bağımlılıkla oluşturuyoruz
-            _instructorService = new InstructorService(_mockInstructorRepository.Object);
-        }
+            // LoggerServiceBase mock'ı oluşturuyoruz
+            _mockLogger = new Mock<LoggerServiceBase>();
 
+            // InstructorService'i doğru bağımlılıkla oluşturuyoruz
+            _instructorService = new InstructorService(_mockInstructorRepository.Object, _mockLogger.Object);
+        }
         [Fact]
         public async Task AddAsync_ShouldReturnAddedInstructor_WhenGivenValidDto()
         {
