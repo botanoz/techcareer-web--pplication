@@ -3,6 +3,8 @@ using Autofac.Extras.DynamicProxy;
 using AutoMapper;
 using Castle.DynamicProxy;
 using Core.AOP.AspectInterceptors;
+using Core.CrossCuttingConcerns.Serilog.Loggers;
+using Core.CrossCuttingConcerns.Serilog;
 using Core.Security.JWT;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using TechCareer.DataAccess.Repositories.Concretes;
@@ -37,12 +39,13 @@ namespace TechCareer.Service.DependencyResolvers.Autofac
                 .As<ITokenHelper>()
                 .InstancePerLifetimeScope();
 
-            // Repository Kayıtları
-            builder.RegisterType<CategoryRepository>().As<ICategoryRepository>().InstancePerLifetimeScope();
 
             // Business Rules ve Servis Kayıtları
             builder.RegisterType<UserBusinessRules>().As<IUserBusinessRules>().InstancePerLifetimeScope();
             builder.RegisterType<AuthService>().As<IAuthService>().InstancePerLifetimeScope();
+            builder.RegisterType<CategoryBusinessRules>().AsSelf().InstancePerLifetimeScope();
+            builder.RegisterType<CategoryRepository>().As<ICategoryRepository>().InstancePerLifetimeScope();
+            builder.RegisterType<FileLogger>().As<LoggerServiceBase>().SingleInstance();
         }
     }
 }

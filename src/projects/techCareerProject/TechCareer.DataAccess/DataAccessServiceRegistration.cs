@@ -29,12 +29,6 @@ public static class DataAccessServiceRegistration
         services.AddScoped<IWorkPlaceRepository, WorkPlaceRepository>();
         services.AddScoped<IYearsOfExperienceRepository, YearsOfExperienceRepository>();
 
-        services.AddScoped<ICategoryRepository, CategoryRepository>();
-
-        services.AddScoped<IEventRepository, EventRepository>();
-        services.AddScoped<IInstructorRepository, InstructorRepository>();
-        services.AddScoped<IOperationClaimRepository, OperationClaimRepository>();
-        services.AddScoped<IVideoEducationRepository, VideoEducationRepository>();
 
 
         services.AddDbContext<BaseDbContext>(opt =>
