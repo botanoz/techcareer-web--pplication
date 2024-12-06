@@ -1,17 +1,17 @@
-﻿using System.Linq.Expressions;
-using Xunit;
+﻿using Xunit;
 using Moq;
 using System.Threading.Tasks;
 using TechCareer.Service.Abstracts;
 using TechCareer.Service.Concretes;
-using TechCareer.Service.Rules;
 using TechCareer.DataAccess.Repositories.Abstracts;
-using Core.Security.Entities;
-using System.Collections.Generic;
-using FluentAssertions;
-using System.Linq;
 using TechCareer.Models.Dtos.Category;
+using Core.Security.Entities;
+using FluentAssertions;
 using Core.CrossCuttingConcerns.Serilog;
+using System.Linq.Expressions;
+using TechCareer.Service.Rules;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace TechCareer.Service.Tests.UnitTests
 {
@@ -25,7 +25,7 @@ namespace TechCareer.Service.Tests.UnitTests
         public CategoryServiceTests()
         {
             _mockCategoryRepository = new Mock<ICategoryRepository>();
-            _mockCategoryBusinessRules = new Mock<CategoryBusinessRules>();
+            _mockCategoryBusinessRules = new Mock<CategoryBusinessRules>(_mockCategoryRepository.Object); // Pass the repository mock
             _mockLoggerService = new Mock<LoggerServiceBase>();
             _categoryService = new CategoryService(
                 _mockCategoryRepository.Object,
@@ -50,7 +50,7 @@ namespace TechCareer.Service.Tests.UnitTests
             // Assert
             result.Should().BeEquivalentTo(new CategoryResponseDto { Id = category.Id, Name = category.Name });
             _mockCategoryRepository.Verify(repo => repo.AddAsync(It.IsAny<Category>()), Times.Once);
-            _mockLoggerService.Verify(logger => logger.Info(It.IsAny<string>()), Times.Once); // Log kontrolü
+            _mockLoggerService.Verify(logger => logger.Info(It.Is<string>(s => s.Contains("Category added"))), Times.Once);
         }
 
         [Fact]
@@ -85,6 +85,7 @@ namespace TechCareer.Service.Tests.UnitTests
                 It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()), Times.Once);
         }
+
         [Fact]
         public async Task DeleteAsync_ShouldMarkCategoryAsDeleted()
         {
@@ -92,7 +93,6 @@ namespace TechCareer.Service.Tests.UnitTests
             var categoryRequestDto = new CategoryRequestDto { Id = 1 };
             var category = new Category { Id = 1, Name = "Category1", IsDeleted = false };
 
-            // Adlandırılmış argümanlar kaldırıldı ve sıralı argüman kullanıldı.
             _mockCategoryRepository.Setup(repo => repo.GetAsync(
                 x => x.Id == categoryRequestDto.Id, true, false, true, default))
                 .ReturnsAsync(category);
@@ -108,6 +108,7 @@ namespace TechCareer.Service.Tests.UnitTests
             category.IsDeleted.Should().BeTrue();
             _mockCategoryRepository.Verify(repo => repo.UpdateAsync(It.Is<Category>(c => c.IsDeleted == true)), Times.Once);
         }
+
         [Fact]
         public async Task UpdateAsync_ShouldUpdateCategory()
         {
@@ -116,13 +117,12 @@ namespace TechCareer.Service.Tests.UnitTests
             var updateRequestDto = new CategoryUpdateRequestDto { Id = 1, Name = "NewName" };
             var updatedCategory = new Category { Id = 1, Name = "NewName" };
 
-            // Adlandırılmış argümanları kullanmadan ayarlama yapıyoruz
             _mockCategoryRepository.Setup(repo => repo.GetAsync(
                 x => x.Id == updateRequestDto.Id,
-                true, // include varsayılan değeri
-                false, // withDeleted varsayılan değeri
-                true, // enableTracking varsayılan değeri
-                default)) // CancellationToken varsayılan değeri
+                true, // include
+                false, // withDeleted
+                true, // enableTracking
+                default)) // CancellationToken
                 .ReturnsAsync(existingCategory);
 
             _mockCategoryRepository.Setup(repo => repo.UpdateAsync(It.IsAny<Category>()))
