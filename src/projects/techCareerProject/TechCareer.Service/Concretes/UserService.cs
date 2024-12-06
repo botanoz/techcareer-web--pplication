@@ -10,9 +10,9 @@ namespace TechCareer.Service.Concretes;
 public sealed class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
-    private readonly UserBusinessRules _userBusinessRules;
+    private readonly IUserBusinessRules _userBusinessRules; // Interface kullanımı
 
-    public UserService(UserBusinessRules userBusinessRules, IUserRepository userRepository)
+    public UserService(IUserBusinessRules userBusinessRules, IUserRepository userRepository)
     {
         _userBusinessRules = userBusinessRules;
         _userRepository = userRepository;
@@ -25,7 +25,6 @@ public sealed class UserService : IUserService
         return user;
     }
 
-    
     //[CacheAspect(bypassCache:false, cacheKeyTemplate:"Users({index},{size})",cacheGroupKey:"Users",Priority = 3)]
     public async Task<Paginate<User>> GetPaginateAsync(Expression<Func<User, bool>>? predicate = null, Func<IQueryable<User>, IOrderedQueryable<User>>? orderBy = null, bool include = false, int index = 0,
         int size = 10, bool withDeleted = false, bool enableTracking = true, CancellationToken cancellationToken = default)
@@ -47,33 +46,28 @@ public sealed class UserService : IUserService
         bool enableTracking = false, CancellationToken cancellationToken = default)
     {
         List<User> userList = await _userRepository.GetListAsync(
-            predicate,orderBy,include,withDeleted,enableTracking,cancellationToken
+            predicate, orderBy, include, withDeleted, enableTracking, cancellationToken
         );
         return userList;
     }
 
     public async Task<User> AddAsync(User user)
     {
-        await _userBusinessRules.UserEmailShouldNotExistsWhenInsert(user.Email);
-        
+        await _userBusinessRules.UserEmailShouldNotExistWhenInsert(user.Email); // Hata giderildi
         User addedUser = await _userRepository.AddAsync(user);
-        
         return addedUser;
     }
 
     public async Task<User> UpdateAsync(User user)
     {
-        await _userBusinessRules.UserEmailShouldNotExistsWhenUpdate(user.Id, user.Email);
-
+        await _userBusinessRules.UserEmailShouldNotExistWhenUpdate(user.Id, user.Email); // Hata giderildi
         User updatedUser = await _userRepository.UpdateAsync(user);
-
         return updatedUser;
     }
-    
+
     public async Task<User> DeleteAsync(User user, bool permanent = false)
     {
-        User deletedUser = await _userRepository.DeleteAsync(user,permanent);
-
+        User deletedUser = await _userRepository.DeleteAsync(user, permanent);
         return deletedUser;
     }
 }
