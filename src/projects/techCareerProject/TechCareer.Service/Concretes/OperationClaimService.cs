@@ -1,4 +1,5 @@
-﻿using Core.Persistence.Extensions;
+﻿using Core.CrossCuttingConcerns.Serilog;
+using Core.Persistence.Extensions;
 using Core.Security.Entities;
 using System.Linq.Expressions;
 using TechCareer.DataAccess.Repositories.Abstracts;
@@ -10,10 +11,12 @@ namespace TechCareer.Service.Concretes
     public class OperationClaimService : IOperationClaimService
     {
         private readonly IOperationClaimRepository _operationClaimRepository;
+        private readonly LoggerServiceBase _logger;
 
-        public OperationClaimService(IOperationClaimRepository operationClaimRepository)
+        public OperationClaimService(IOperationClaimRepository operationClaimRepository, LoggerServiceBase logger)
         {
             _operationClaimRepository = operationClaimRepository;
+            _logger = logger;
         }
 
         // Get a single operation claim with optional filters
@@ -24,16 +27,25 @@ namespace TechCareer.Service.Concretes
             bool enableTracking = true,
             CancellationToken cancellationToken = default)
         {
-            var operationClaim = await _operationClaimRepository.GetAsync(predicate, withDeleted: withDeleted);
-
-            if (operationClaim == null)
-                return null;
-
-            return new OperationClaimResponseDto
+            try
             {
-                Id = operationClaim.Id,
-                Name = operationClaim.Name
-            };
+                var operationClaim = await _operationClaimRepository.GetAsync(predicate, withDeleted: withDeleted);
+
+                if (operationClaim == null)
+                    return null;
+
+                return new OperationClaimResponseDto
+                {
+                    Id = operationClaim.Id,
+                    Name = operationClaim.Name
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Get paginated list of operation claims
@@ -47,20 +59,29 @@ namespace TechCareer.Service.Concretes
             bool enableTracking = true,
             CancellationToken cancellationToken = default)
         {
-            var paginateResult = await _operationClaimRepository.GetPaginateAsync(predicate, index: index, size: size, enableTracking: enableTracking, withDeleted: withDeleted);
-
-            return new Paginate<OperationClaimResponseDto>
+            try
             {
-                Items = paginateResult.Items.Select(operationClaim => new OperationClaimResponseDto
+                var paginateResult = await _operationClaimRepository.GetPaginateAsync(predicate, index: index, size: size, enableTracking: enableTracking, withDeleted: withDeleted);
+
+                return new Paginate<OperationClaimResponseDto>
                 {
-                    Id = operationClaim.Id,
-                    Name = operationClaim.Name
-                }).ToList(),
-                Index = paginateResult.Index,
-                Size = paginateResult.Size,
-                TotalItems = paginateResult.TotalItems,
-                TotalPages = paginateResult.TotalPages
-            };
+                    Items = paginateResult.Items.Select(operationClaim => new OperationClaimResponseDto
+                    {
+                        Id = operationClaim.Id,
+                        Name = operationClaim.Name
+                    }).ToList(),
+                    Index = paginateResult.Index,
+                    Size = paginateResult.Size,
+                    TotalItems = paginateResult.TotalItems,
+                    TotalPages = paginateResult.TotalPages
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Get list of operation claims
@@ -72,81 +93,123 @@ namespace TechCareer.Service.Concretes
             bool enableTracking = true,
             CancellationToken cancellationToken = default)
         {
-            var operationClaims = await _operationClaimRepository.GetListAsync(predicate, orderBy, enableTracking, withDeleted);
-
-            return operationClaims.Select(operationClaim => new OperationClaimResponseDto
+            try
             {
-                Id = operationClaim.Id,
-                Name = operationClaim.Name
-            }).ToList();
+                var operationClaims = await _operationClaimRepository.GetListAsync(predicate, orderBy, enableTracking, withDeleted);
+
+                return operationClaims.Select(operationClaim => new OperationClaimResponseDto
+                {
+                    Id = operationClaim.Id,
+                    Name = operationClaim.Name
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Add a new operation claim
         public async Task<OperationClaimResponseDto> AddAsync(OperationClaimAddRequestDto operationClaimAddRequestDto)
         {
-            // Yeni bir OperationClaim entity oluştur
-            var operationClaim = new OperationClaim
+            try
             {
-                Name = operationClaimAddRequestDto.Name
-            };
+                // Yeni bir OperationClaim entity oluştur
+                var operationClaim = new OperationClaim
+                {
+                    Name = operationClaimAddRequestDto.Name
+                };
 
-            // Veritabanına kaydet
-            var addedOperationClaim = await _operationClaimRepository.AddAsync(operationClaim);
+                // Veritabanına kaydet
+                var addedOperationClaim = await _operationClaimRepository.AddAsync(operationClaim);
 
-            // Cevap DTO'su oluştur ve geri döndür
-            return new OperationClaimResponseDto
+                _logger.Info("Info log: OperationClaim added.");
+
+                // Cevap DTO'su oluştur ve geri döndür
+                return new OperationClaimResponseDto
+                {
+                    Id = addedOperationClaim.Id,
+                    Name = addedOperationClaim.Name
+                };
+            }
+            catch (Exception ex)
             {
-                Id = addedOperationClaim.Id,
-                Name = addedOperationClaim.Name
-            };
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Update an existing operation claim
         public async Task<OperationClaimResponseDto> UpdateAsync(OperationClaimUpdateRequestDto operationClaimUpdateRequestDto)
         {
-            var operationClaim = await _operationClaimRepository.GetAsync(x => x.Id == operationClaimUpdateRequestDto.Id);
-
-            if (operationClaim == null)
-                throw new ApplicationException("Operation claim not found.");
-
-            // Update fields
-            operationClaim.Name = operationClaimUpdateRequestDto.Name;
-
-            var updatedOperationClaim = await _operationClaimRepository.UpdateAsync(operationClaim);
-
-            return new OperationClaimResponseDto
+            try
             {
-                Id = updatedOperationClaim.Id,
-                Name = updatedOperationClaim.Name
-            };
+                var operationClaim = await _operationClaimRepository.GetAsync(x => x.Id == operationClaimUpdateRequestDto.Id);
+
+                if (operationClaim == null)
+                    throw new ApplicationException("Operation claim not found.");
+
+                // Update fields
+                operationClaim.Name = operationClaimUpdateRequestDto.Name;
+
+                var updatedOperationClaim = await _operationClaimRepository.UpdateAsync(operationClaim);
+
+                _logger.Info("Info log: OperationClaim updated.");
+
+                return new OperationClaimResponseDto
+                {
+                    Id = updatedOperationClaim.Id,
+                    Name = updatedOperationClaim.Name
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
 
         // Delete an operation claim
         public async Task<OperationClaimResponseDto> DeleteAsync(OperationClaimRequestDto operationClaimRequestDto, bool permanent = false)
         {
-            var operationClaim = await _operationClaimRepository.GetAsync(
-                x => x.Id == operationClaimRequestDto.Id,
-                withDeleted: true
-            );
-
-            if (operationClaim == null)
-                throw new ApplicationException("Operation claim not found.");
-
-            if (permanent)
+            try
             {
-                await _operationClaimRepository.DeleteAsync(operationClaim, true);
-            }
-            else
-            {
-                operationClaim.IsDeleted = true;
-                await _operationClaimRepository.DeleteAsync(operationClaim);
-            }
+                var operationClaim = await _operationClaimRepository.GetAsync(
+                    x => x.Id == operationClaimRequestDto.Id,
+                    withDeleted: true
+                );
+
+                if (operationClaim == null)
+                    throw new ApplicationException("Operation claim not found.");
+
+                if (permanent)
+                {
+                    await _operationClaimRepository.DeleteAsync(operationClaim, true);
+                }
+                else
+                {
+                    operationClaim.IsDeleted = true;
+                    await _operationClaimRepository.DeleteAsync(operationClaim);
+                }
+
+                _logger.Info("Info log: OperationClaim deleted.");
 
                 return new OperationClaimResponseDto
+                {
+                    Id = operationClaim.Id,
+                    Name = operationClaim.Name
+                };
+            }
+            catch (Exception ex)
             {
-                Id = operationClaim.Id,
-                Name = operationClaim.Name
-            };
+                _logger.Error($"Error log: {ex}");
+                throw new Exception("An error occurred. Please try again later.", ex);
+            }
+
         }
     }
 }

@@ -29,10 +29,6 @@ namespace TechCareer.API.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var operationClaim = await _operationClaimService.GetAsync(x => x.Id == id);
-
-            if (operationClaim == null)
-                return NotFound(new { Message = "OperationClaim not found." });
-
             return Ok(operationClaim);
         }
 
@@ -40,9 +36,6 @@ namespace TechCareer.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] OperationClaimAddRequestDto operationClaimAddRequestDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var addedOperationClaim = await _operationClaimService.AddAsync(operationClaimAddRequestDto);
             return CreatedAtAction(nameof(GetById), new { id = addedOperationClaim.Id }, addedOperationClaim);
         }
@@ -51,36 +44,19 @@ namespace TechCareer.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] OperationClaimUpdateRequestDto operationClaimUpdateRequestDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             // Ensure the correct ID is passed
             operationClaimUpdateRequestDto.Id = id;
-
-            try
-            {
-                var updatedOperationClaim = await _operationClaimService.UpdateAsync(operationClaimUpdateRequestDto);
-                return Ok(updatedOperationClaim);
-            }
-            catch (ApplicationException ex)
-            {
-                return NotFound(new { Message = ex.Message });
-            }
+            var updatedOperationClaim = await _operationClaimService.UpdateAsync(operationClaimUpdateRequestDto);
+            return Ok(updatedOperationClaim);
         }
 
         // Delete an operation claim
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id, [FromQuery] bool permanent = false)
         {
-            try
-            {
-                var deletedOperationClaim = await _operationClaimService.DeleteAsync(new OperationClaimRequestDto { Id = id }, permanent);
-                return Ok(deletedOperationClaim);
-            }
-            catch (ApplicationException ex)
-            {
-                return NotFound(new { Message = ex.Message });
-            }
+
+            var deletedOperationClaim = await _operationClaimService.DeleteAsync(new OperationClaimRequestDto { Id = id }, permanent);
+            return Ok(deletedOperationClaim);
         }
 
         // Get paginated operation claims
