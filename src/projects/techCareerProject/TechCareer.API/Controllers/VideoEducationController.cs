@@ -29,10 +29,6 @@ namespace TechCareer.Api.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var videoEducation = await _videoEducationService.GetAsync(education => education.Id == id);
-
-            if (videoEducation == null)
-                return NotFound(new { Message = "Video education not found." });
-
             return Ok(videoEducation);
         }
 
@@ -40,9 +36,6 @@ namespace TechCareer.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] VideoEducationAddRequestDto videoEducationAddRequestDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var addedVideoEducation = await _videoEducationService.AddAsync(videoEducationAddRequestDto);
             return CreatedAtAction(nameof(GetById), new { id = addedVideoEducation.Id }, addedVideoEducation);
         }
@@ -51,38 +44,19 @@ namespace TechCareer.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] VideoEducationUpdateRequestDto videoEducationUpdateRequestDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            // Ensure the correct ID is passed
             videoEducationUpdateRequestDto.Id = id;
-
-            try
-            {
-                var updatedVideoEducation = await _videoEducationService.UpdateAsync(videoEducationUpdateRequestDto);
-                return Ok(updatedVideoEducation);
-            }
-            catch (ApplicationException ex)
-            {
-                return NotFound(new { Message = ex.Message });
-            }
+            var updatedVideoEducation = await _videoEducationService.UpdateAsync(videoEducationUpdateRequestDto);
+            return Ok(updatedVideoEducation);
         }
 
         // Delete a video education
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id, [FromQuery] bool permanent = false)
         {
-            try
-            {
-                var deletedVideoEducation = await _videoEducationService.DeleteAsync(
-                    new VideoEducationRequestDto { Id = id }, permanent);
+            var deletedVideoEducation = await _videoEducationService.DeleteAsync(
+                new VideoEducationRequestDto { Id = id }, permanent);
 
-                return Ok(deletedVideoEducation);
-            }
-            catch (ApplicationException ex)
-            {
-                return NotFound(new { Message = ex.Message });
-            }
+            return Ok(deletedVideoEducation);
         }
 
         // Get paginated video educations
