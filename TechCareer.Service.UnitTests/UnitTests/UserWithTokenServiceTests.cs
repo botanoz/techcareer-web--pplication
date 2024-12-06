@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using TechCareer.DataAccess.Repositories.Abstracts;
 using TechCareer.Service.Concretes;
 using Xunit;
+
 namespace TechCareer.Service.Tests.UnitTests
 {
     public class UserWithTokenServiceTests
@@ -37,18 +37,18 @@ namespace TechCareer.Service.Tests.UnitTests
             };
 
             var userOperationClaims = new List<UserOperationClaim>
-        {
-            new UserOperationClaim(1, 1)
             {
-                User = user,
-                OperationClaim = new OperationClaim { Id = 1, Name = "Admin" },
-                IsDeleted = false
-            }
-        };
+                new UserOperationClaim(1, 1)
+                {
+                    User = user,
+                    OperationClaim = new OperationClaim { Id = 1, Name = "Admin" },
+                    IsDeleted = false
+                }
+            };
 
             _mockUserOperationClaimRepository
                 .Setup(repo => repo.Query())
-                .Returns(userOperationClaims.AsQueryable().AsNoTracking());
+                .Returns(userOperationClaims.AsQueryable().AsNoTracking());  // Correctly mock IQueryable
 
             var expectedAccessToken = new AccessToken
             {
@@ -58,7 +58,7 @@ namespace TechCareer.Service.Tests.UnitTests
 
             _mockTokenHelper
                 .Setup(helper => helper.CreateToken(It.IsAny<User>(), It.IsAny<List<OperationClaim>>()))
-                .Returns(expectedAccessToken);
+                .Returns(expectedAccessToken); // Mock the CreateToken method correctly
 
             // Act
             var result = await _userWithTokenService.CreateAccessToken(user);
@@ -68,8 +68,8 @@ namespace TechCareer.Service.Tests.UnitTests
             Assert.Equal(expectedAccessToken.Token, result.Token);
             Assert.Equal(expectedAccessToken.Expiration, result.Expiration);
 
-            _mockUserOperationClaimRepository.Verify(repo => repo.Query(), Times.Once);
-            _mockTokenHelper.Verify(helper => helper.CreateToken(user, It.IsAny<List<OperationClaim>>()), Times.Once);
+            _mockUserOperationClaimRepository.Verify(repo => repo.Query(), Times.Once);  // Verify Query() call
+            _mockTokenHelper.Verify(helper => helper.CreateToken(user, It.IsAny<List<OperationClaim>>()), Times.Once);  // Verify CreateToken call
         }
     }
 }

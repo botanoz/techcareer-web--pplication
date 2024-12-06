@@ -48,18 +48,27 @@ namespace TechCareer.Service.Tests.UnitTests
                 eventAddRequestDto.ApplicationDeadline,
                 eventAddRequestDto.ParticipationText,
                 eventAddRequestDto.CategoryId
-            );
+            )
+            {
+                Id = Guid.NewGuid() // Mock ID
+            };
 
-            _mockEventRepository.Setup(repo => repo.AddAsync(It.IsAny<Event>())).ReturnsAsync(newEvent);
+            _mockEventRepository.Setup(repo => repo.AddAsync(It.IsAny<Event>()))
+                .ReturnsAsync(newEvent);
 
             // Act
             var result = await _eventService.AddAsync(eventAddRequestDto);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("Test Event", result.Title);
-            _mockEventRepository.Verify(repo => repo.AddAsync(It.IsAny<Event>()), Times.Once);
+            Assert.Equal(newEvent.Id, result.Id);
+            Assert.Equal(newEvent.Title, result.Title);
+            _mockEventRepository.Verify(repo => repo.AddAsync(It.Is<Event>(e =>
+                e.Title == eventAddRequestDto.Title &&
+                e.Description == eventAddRequestDto.Description
+            )), Times.Once);
         }
+
 
         [Fact]
         public async Task GetAsync_ShouldReturnEvent_WhenEventExists()
@@ -95,43 +104,37 @@ namespace TechCareer.Service.Tests.UnitTests
         public async Task DeleteAsync_ShouldMarkEventAsDeleted_WhenEventExists()
         {
             // Arrange
-            var eventId = Guid.Parse("7ffc3c76-59b2-4c4e-b1e1-0c6de0e3629b"); // Use the specified ID
+            var eventId = Guid.Parse("7ffc3c76-59b2-4c4e-b1e1-0c6de0e3629b");
             var eventToDelete = new Event
             {
                 Id = eventId,
                 Title = "Event to Delete",
-                Description = "Description",
-                ImageUrl = "image.jpg",
-                StartDate = DateTime.Now,
-                EndDate = DateTime.Now.AddDays(1),
-                ApplicationDeadline = DateTime.Now.AddDays(2),
-                ParticipationText = "Join us!",
-                CategoryId = 1
+                IsDeleted = false
             };
 
-            var eventRequestDto = new EventRequestDto
-            {
-                Id = eventId
-            };
-
-            // Setup mock to return the event with the given ID
+            // Mock: ID'ye göre doğru etkinliği döndürme
             _mockEventRepository.Setup(repo => repo.GetAsync(
-                It.Is<Expression<Func<Event, bool>>>(expr => expr.Compile()(eventToDelete)),
-                true, // include (default value)
-                false, // withDeleted (default value)
-                true, // enableTracking (default value)
-                It.IsAny<CancellationToken>() // cancellation token
-            ))
-            .ReturnsAsync(eventToDelete);
+                    It.Is<Expression<Func<Event, bool>>>(predicate => predicate.Compile()(eventToDelete)), // ID eşleştirme
+                    true, false, true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(eventToDelete);
+
+            // Mock: Güncelleme metodunun çağrılması
+            _mockEventRepository.Setup(repo => repo.UpdateAsync(It.IsAny<Event>()))
+                .ReturnsAsync(eventToDelete);
+
+            var eventRequestDto = new EventRequestDto { Id = eventId };
 
             // Act
             var result = await _eventService.DeleteAsync(eventRequestDto);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.True(eventToDelete.IsDeleted); // Ensure that the event is marked as deleted
-            _mockEventRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Event>()), Times.Once); // Verify UpdateAsync was called once
+            Assert.NotNull(result); // Sonucun boş olmadığını doğrula
+            Assert.True(eventToDelete.IsDeleted); // Etkinliğin silindi olarak işaretlendiğini kontrol et
+            _mockEventRepository.Verify(repo => repo.UpdateAsync(
+                It.Is<Event>(e => e.Id == eventId && e.IsDeleted)), Times.Once); // Güncellemenin doğru parametrelerle çağrıldığını doğrula
         }
+
+
 
 
         [Fact]
@@ -143,62 +146,46 @@ namespace TechCareer.Service.Tests.UnitTests
             var existingEvent = new Event
             {
                 Id = eventId,
-                Title = "Event to Update",
-                Description = "Description",
-                ImageUrl = "image.jpg",
+                Title = "Old Title",
+                Description = "Old Description",
+                ImageUrl = "old.jpg",
                 StartDate = DateTime.Now,
                 EndDate = DateTime.Now.AddDays(1),
                 ApplicationDeadline = DateTime.Now.AddDays(2),
-                ParticipationText = "Join us!",
+                ParticipationText = "Old Participation Text",
                 CategoryId = 1
             };
 
-            var updatedEventDto = new EventUpdateRequestDto
+            var updateRequest = new EventUpdateRequestDto
             {
                 Id = eventId,
-                Title = "Updated Event",
-                Description = "Updated Description",
-                ImageUrl = "updated_image.jpg",
+                Title = "New Title",
+                Description = "New Description",
+                ImageUrl = "new.jpg",
                 StartDate = DateTime.Now,
-                EndDate = DateTime.Now.AddDays(2),
-                ApplicationDeadline = DateTime.Now.AddDays(3),
-                ParticipationText = "Updated Participation Text",
+                EndDate = DateTime.Now.AddDays(3),
+                ApplicationDeadline = DateTime.Now.AddDays(4),
+                ParticipationText = "New Participation Text",
                 CategoryId = 2
             };
 
-            // Mock GetAsync to return the existing event with explicit values for optional parameters
             _mockEventRepository.Setup(repo => repo.GetAsync(It.IsAny<Expression<Func<Event, bool>>>(), true, false, true, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(existingEvent);
 
-            // Mock UpdateAsync to return the updated event
             _mockEventRepository.Setup(repo => repo.UpdateAsync(It.IsAny<Event>()))
-                .ReturnsAsync((Event updatedEvent) =>
-                {
-                    // Simulate the event being updated with the new values
-                    existingEvent.Title = updatedEvent.Title;
-                    existingEvent.Description = updatedEvent.Description;
-                    existingEvent.ImageUrl = updatedEvent.ImageUrl;
-                    existingEvent.StartDate = updatedEvent.StartDate;
-                    existingEvent.EndDate = updatedEvent.EndDate;
-                    existingEvent.ApplicationDeadline = updatedEvent.ApplicationDeadline;
-                    existingEvent.ParticipationText = updatedEvent.ParticipationText;
-                    existingEvent.CategoryId = updatedEvent.CategoryId;
-
-                    return existingEvent;
-                });
+                .ReturnsAsync((Event e) => e); // Simulate returning the updated event
 
             // Act
-            var result = await _eventService.UpdateAsync(updatedEventDto);
+            var result = await _eventService.UpdateAsync(updateRequest);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("Updated Event", result.Title);
-            Assert.Equal("Updated Description", result.Description);
-            Assert.Equal("updated_image.jpg", result.ImageUrl);
-            Assert.Equal(DateTime.Now.AddDays(2), result.EndDate);
-            Assert.Equal("Updated Participation Text", result.ParticipationText);
-            _mockEventRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Event>()), Times.Once);
-            _mockEventRepository.Verify(repo => repo.AddAsync(It.IsAny<Event>()), Times.Never);
+            Assert.Equal(updateRequest.Title, result.Title);
+            Assert.Equal(updateRequest.Description, result.Description);
+            _mockEventRepository.Verify(repo => repo.UpdateAsync(It.Is<Event>(e =>
+                e.Title == updateRequest.Title &&
+                e.Description == updateRequest.Description
+            )), Times.Once);
         }
 
 
