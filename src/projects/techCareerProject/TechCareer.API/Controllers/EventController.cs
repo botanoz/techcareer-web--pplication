@@ -43,10 +43,10 @@ namespace TechCareer.API.Controllers
         }
 
 
-        [HttpPut]
-        public async Task<IActionResult> Update([FromBody] EventUpdateRequestDto eventUpdateRequestDto)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] EventUpdateRequestDto eventUpdateRequestDto)
         {
-
+            eventUpdateRequestDto.Id = id;
             var UpdatedEvent = await _eventService.UpdateAsync(eventUpdateRequestDto);
             return Ok(UpdatedEvent);
 
