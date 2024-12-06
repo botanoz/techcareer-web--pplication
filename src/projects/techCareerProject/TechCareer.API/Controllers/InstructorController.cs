@@ -17,7 +17,6 @@ namespace TechCareer.API.Controllers
             _instructorService = instructorService;
         }
 
-        // Tüm eğitmenleri getirir
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] bool includeDeleted = false)
         {
@@ -25,7 +24,6 @@ namespace TechCareer.API.Controllers
             return Ok(instructors);
         }
 
-        // ID ile eğitmen getirir
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -33,7 +31,6 @@ namespace TechCareer.API.Controllers
             return Ok(instructor);
         }
 
-        // Yeni eğitmen ekler
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] InstructorAddRequestDto instructorAddRequestDto)
         {
@@ -41,7 +38,6 @@ namespace TechCareer.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = addedInstructor.Id }, addedInstructor);
         }
 
-        // Eğitmen günceller
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] InstructorUpdateRequestDto instructorUpdateRequestDto)
         {
@@ -50,7 +46,6 @@ namespace TechCareer.API.Controllers
             return Ok(updatedInstructor);
         }
 
-        // Eğitmen siler
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id, [FromQuery] bool permanent = false)
         {
@@ -60,7 +55,6 @@ namespace TechCareer.API.Controllers
             return Ok(deletedInstructor);
         }
 
-        // Sayfalandırılmış eğitmen listesi
         [HttpGet("paginate")]
         public async Task<IActionResult> GetPaginated(
             [FromQuery] int pageIndex = 0,

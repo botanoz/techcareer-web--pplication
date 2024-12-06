@@ -29,7 +29,6 @@ namespace TechCareer.Service.Concretes
             _logger = logger;
         }
 
-        // Etkinlik eklemek için AddAsync metodu
         public async Task<EventResponseDto> AddAsync(EventAddRequestDto eventAddRequestDto)
         {
             try
@@ -44,12 +43,10 @@ namespace TechCareer.Service.Concretes
                     eventAddRequestDto.ParticipationText,
                     eventAddRequestDto.CategoryId);
 
-                // Etkinliği veritabanına ekleyin
                 var addedEvent = await _eventRepository.AddAsync(eventEntity);
 
                 _logger.Info("Info log: Event added.");
 
-                // Dönen etkinlik bilgilerini içeren DTO'yu döndürün
                 return new EventResponseDto
                 {
                     Id = addedEvent.Id,
@@ -70,7 +67,6 @@ namespace TechCareer.Service.Concretes
             }
         }
 
-        // Etkinlik silme metodu
         public async Task<EventResponseDto> DeleteAsync(EventRequestDto eventRequestDto, bool permanent = false)
         {
             try
@@ -121,14 +117,11 @@ namespace TechCareer.Service.Concretes
         {
             try
             {
-                // 'await' anahtar kelimesi ile asenkron metod çağrısı yapılmalı
                 var eventEntity = await _eventRepository.GetAsync(x => x.Id == eventRequestDto.Id);
 
-                // Eğer etkinlik bulunamazsa, hata fırlatıyoruz
                 if (eventEntity == null)
                     throw new ApplicationException("Event not found.");
 
-                // EventResponseDto'yu döndürüyoruz
                 return new EventResponseDto
                 {
                     Id = eventEntity.Id,
@@ -151,7 +144,6 @@ namespace TechCareer.Service.Concretes
         }
 
 
-        // Tek bir etkinliği getirme metodu
         public async Task<EventResponseDto?> GetAsync(
             Expression<Func<Event, bool>> predicate,
             bool include = false,
@@ -162,7 +154,6 @@ namespace TechCareer.Service.Concretes
         {
             try
             {
-                // Event repository ile etkinlik verisini alıyoruz
                 var selectedEvent = await _eventRepository.GetAsync(predicate, withDeleted: withDeleted);
 
                 if (selectedEvent == null)
@@ -171,7 +162,6 @@ namespace TechCareer.Service.Concretes
                     throw new ApplicationException("Event not found.");
                 }
 
-                // EventResponseDto döndürüyoruz
                 return new EventResponseDto
                 {
                     Id = selectedEvent.Id,
@@ -194,7 +184,6 @@ namespace TechCareer.Service.Concretes
         }
 
 
-        // Etkinlikleri listeleme metodu
         public async Task<List<EventResponseDto>> GetListAsync(
             Expression<Func<Event, bool>>? predicate = null,
             Func<IQueryable<Event>, IOrderedQueryable<Event>>? orderBy = null,
@@ -239,7 +228,6 @@ namespace TechCareer.Service.Concretes
 
 
 
-        // Sayfalı etkinlik listesi getirme metodu
         public async Task<Paginate<EventResponseDto>> GetPaginateAsync(
             Expression<Func<Event, bool>>? predicate = null,
             Func<IQueryable<Event>, IOrderedQueryable<Event>>? orderBy = null,
@@ -291,7 +279,6 @@ namespace TechCareer.Service.Concretes
         }
 
 
-        // Etkinlik güncelleme metodu
         public async Task<EventResponseDto> UpdateAsync(EventUpdateRequestDto eventUpdateRequestDto)
         {
             try

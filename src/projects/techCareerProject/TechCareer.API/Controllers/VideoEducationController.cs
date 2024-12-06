@@ -16,7 +16,6 @@ namespace TechCareer.Api.Controllers
             _videoEducationService = videoEducationService;
         }
 
-        // Get all video educations
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] bool includeDeleted = false)
         {
@@ -24,7 +23,6 @@ namespace TechCareer.Api.Controllers
             return Ok(videoEducations);
         }
 
-        // Get video education by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -32,7 +30,6 @@ namespace TechCareer.Api.Controllers
             return Ok(videoEducation);
         }
 
-        // Add a new video education
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] VideoEducationAddRequestDto videoEducationAddRequestDto)
         {
@@ -40,7 +37,6 @@ namespace TechCareer.Api.Controllers
             return CreatedAtAction(nameof(GetById), new { id = addedVideoEducation.Id }, addedVideoEducation);
         }
 
-        // Update an existing video education
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] VideoEducationUpdateRequestDto videoEducationUpdateRequestDto)
         {
@@ -49,7 +45,6 @@ namespace TechCareer.Api.Controllers
             return Ok(updatedVideoEducation);
         }
 
-        // Delete a video education
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id, [FromQuery] bool permanent = false)
         {
@@ -59,7 +54,6 @@ namespace TechCareer.Api.Controllers
             return Ok(deletedVideoEducation);
         }
 
-        // Get paginated video educations
         [HttpGet("paginate")]
         public async Task<IActionResult> GetPaginated(
             [FromQuery] int pageIndex = 0,

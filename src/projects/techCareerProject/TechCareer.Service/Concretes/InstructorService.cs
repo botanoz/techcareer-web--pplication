@@ -26,7 +26,6 @@ namespace TechCareer.Service.Concretes
             _logger = logger;
         }
 
-        // Tek bir eğitmen döner
         public async Task<InstructorResponseDto?> GetAsync(
             Expression<Func<Instructor, bool>> predicate,
             bool include = false,
@@ -56,7 +55,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Eğitmenlerin sayfalandırılmış listesi
         public async Task<Paginate<InstructorResponseDto>> GetPaginateAsync(
             Expression<Func<Instructor, bool>>? predicate = null,
             Func<IQueryable<Instructor>, IOrderedQueryable<Instructor>>? orderBy = null,
@@ -99,7 +97,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Eğitmenlerin listesi
         public async Task<List<InstructorResponseDto>> GetListAsync(
             Expression<Func<Instructor, bool>>? predicate = null,
             Func<IQueryable<Instructor>, IOrderedQueryable<Instructor>>? orderBy = null,
@@ -136,7 +133,6 @@ namespace TechCareer.Service.Concretes
         }
 
 
-        // Yeni eğitmen ekler
         public async Task<InstructorResponseDto> AddAsync(InstructorAddRequestDto instructorAddRequestDto)
         {
             try
@@ -166,7 +162,6 @@ namespace TechCareer.Service.Concretes
         }
 
 
-        // Eğitmen günceller
         public async Task<InstructorResponseDto> UpdateAsync(InstructorUpdateRequestDto instructorUpdateRequestDto)
         {
             try
@@ -198,7 +193,6 @@ namespace TechCareer.Service.Concretes
 
         }
 
-        // Eğitmen siler
         public async Task<InstructorResponseDto> DeleteAsync(InstructorRequestDto instructorRequestDto, bool permanent = false)
         {
             try
