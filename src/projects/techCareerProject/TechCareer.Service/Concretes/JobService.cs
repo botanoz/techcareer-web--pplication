@@ -236,7 +236,6 @@ namespace TechCareer.Service.Concretes
             }
             catch (Exception ex)
             {
-
                 _logger.Error($"Error log: {ex}");
                 throw new Exception("An error occurred. Please try again later.", ex);
             }
@@ -287,7 +286,6 @@ namespace TechCareer.Service.Concretes
             }
             catch (Exception ex)
             {
-
                 _logger.Error($"Error log: {ex}");
                 throw new Exception("An error occurred. Please try again later.", ex);
             }

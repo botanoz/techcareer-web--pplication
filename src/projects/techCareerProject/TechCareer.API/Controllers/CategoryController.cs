@@ -30,9 +30,6 @@ namespace TechCareer.API.Controllers
         {
             var category = await _categoryService.FindCategoryAsync(new CategoryRequestDto { Id = id });
 
-            if (category == null)
-                return NotFound(new { Message = "Category not found." });
-
             return Ok(category);
         }
 
@@ -40,9 +37,6 @@ namespace TechCareer.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] CategoryAddRequestDto categoryAddRequestDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var addedCategory = await _categoryService.AddAsync(categoryAddRequestDto);
             return CreatedAtAction(nameof(GetById), new { id = addedCategory.Id }, addedCategory);
         }
@@ -51,38 +45,22 @@ namespace TechCareer.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] CategoryUpdateRequestDto categoryUpdateRequestDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            // Ensure the correct ID is passed
             categoryUpdateRequestDto.Id = id;
 
-            try
-            {
-                var updatedCategory = await _categoryService.UpdateAsync(categoryUpdateRequestDto);
-                return Ok(updatedCategory);
-            }
-            catch (ApplicationException ex)
-            {
-                return NotFound(new { Message = ex.Message });
-            }
+            var updatedCategory = await _categoryService.UpdateAsync(categoryUpdateRequestDto);
+            return Ok(updatedCategory);
         }
 
         // Delete a category
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id, [FromQuery] bool permanent = false)
         {
-            try
-            {
-                var deletedCategory = await _categoryService.DeleteAsync(
-                    new CategoryRequestDto { Id = id }, permanent);
 
-                return Ok(deletedCategory);
-            }
-            catch (ApplicationException ex)
-            {
-                return NotFound(new { Message = ex.Message });
-            }
+            var deletedCategory = await _categoryService.DeleteAsync(
+                new CategoryRequestDto { Id = id }, permanent);
+
+            return Ok(deletedCategory);
+
         }
 
         // Get paginated categories
