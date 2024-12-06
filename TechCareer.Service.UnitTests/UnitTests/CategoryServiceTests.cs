@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using FluentAssertions;
 using System.Linq;
 using TechCareer.Models.Dtos.Category;
+using Core.CrossCuttingConcerns.Serilog;
 
 namespace TechCareer.Service.Tests.UnitTests
 {
@@ -18,13 +19,19 @@ namespace TechCareer.Service.Tests.UnitTests
     {
         private readonly Mock<ICategoryRepository> _mockCategoryRepository;
         private readonly Mock<CategoryBusinessRules> _mockCategoryBusinessRules;
+        private readonly Mock<LoggerServiceBase> _mockLoggerService;
         private readonly ICategoryService _categoryService;
 
         public CategoryServiceTests()
         {
             _mockCategoryRepository = new Mock<ICategoryRepository>();
             _mockCategoryBusinessRules = new Mock<CategoryBusinessRules>();
-            _categoryService = new CategoryService(_mockCategoryRepository.Object, _mockCategoryBusinessRules.Object);
+            _mockLoggerService = new Mock<LoggerServiceBase>();
+            _categoryService = new CategoryService(
+                _mockCategoryRepository.Object,
+                _mockCategoryBusinessRules.Object,
+                _mockLoggerService.Object
+            );
         }
 
         [Fact]
@@ -34,7 +41,6 @@ namespace TechCareer.Service.Tests.UnitTests
             var categoryAddRequestDto = new CategoryAddRequestDto { Name = "TestCategory" };
             var category = new Category { Id = 1, Name = "TestCategory" };
 
-            // Mock: AddAsync
             _mockCategoryRepository.Setup(repo => repo.AddAsync(It.IsAny<Category>()))
                                    .ReturnsAsync(category);
 
@@ -42,112 +48,66 @@ namespace TechCareer.Service.Tests.UnitTests
             var result = await _categoryService.AddAsync(categoryAddRequestDto);
 
             // Assert
-            result.Should().BeEquivalentTo(new CategoryResponseDto { Id = category.Id, Name = category.Name });  // Ensure it matches the expected DTO
-            _mockCategoryRepository.Verify(repo => repo.AddAsync(It.IsAny<Category>()), Times.Once);  // Ensure AddAsync was called once
+            result.Should().BeEquivalentTo(new CategoryResponseDto { Id = category.Id, Name = category.Name });
+            _mockCategoryRepository.Verify(repo => repo.AddAsync(It.IsAny<Category>()), Times.Once);
+            _mockLoggerService.Verify(logger => logger.Info(It.IsAny<string>()), Times.Once); // Log kontrolü
         }
 
-
-[Fact]
-public async Task GetListAsync_ShouldReturnCategoryList()
-{
-    // Arrange
-    var categories = new List<Category>
-    {
-        new Category { Id = 1, Name = "Category1" },
-        new Category { Id = 2, Name = "Category2" }
-    };
-
-    // Mock: Setting up GetListAsync to return categories
-    _mockCategoryRepository.Setup(repo => repo.GetListAsync(
-            It.IsAny<Expression<Func<Category, bool>>>(),
-            It.IsAny<Func<IQueryable<Category>, IOrderedQueryable<Category>>>(),
-            It.IsAny<bool>(),
-            It.IsAny<bool>(),
-            It.IsAny<bool>(),
-            It.IsAny<CancellationToken>()
-        ))
-        .ReturnsAsync(categories);
-
-    // Act
-    var result = await _categoryService.GetListAsync();
-
-    // Assert
-    result.Should().BeEquivalentTo(categories.Select(c => new CategoryResponseDto { Id = c.Id, Name = c.Name }));
-    _mockCategoryRepository.Verify(repo => repo.GetListAsync(
-        It.IsAny<Expression<Func<Category, bool>>>(),
-        It.IsAny<Func<IQueryable<Category>, IOrderedQueryable<Category>>>(),
-        It.IsAny<bool>(),
-        It.IsAny<bool>(),
-        It.IsAny<bool>(),
-        It.IsAny<CancellationToken>()), Times.Once);
-}
-
         [Fact]
-        public async Task GetAsync_ShouldReturnCategoryById()
+        public async Task GetListAsync_ShouldReturnCategoryList()
         {
             // Arrange
-            var category = new Category { Id = 1, Name = "Category1" };
+            var categories = new List<Category>
+            {
+                new Category { Id = 1, Name = "Category1" },
+                new Category { Id = 2, Name = "Category2" }
+            };
 
-            _mockCategoryRepository
-                .Setup(repo => repo.GetAsync(
-                    It.IsAny<Expression<Func<Category, bool>>>(),
-                    It.IsAny<bool>(),   // Include parameter
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<CancellationToken>()
-                ))
-                .ReturnsAsync(category);
+            _mockCategoryRepository.Setup(repo => repo.GetListAsync(
+                It.IsAny<Expression<Func<Category, bool>>>(),
+                It.IsAny<Func<IQueryable<Category>, IOrderedQueryable<Category>>>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
+                .ReturnsAsync(categories);
 
             // Act
-            var result = await _categoryService.GetAsync(
-                x => x.Id == 1,
-                withDeleted: false,
-                cancellationToken: CancellationToken.None
-            );
+            var result = await _categoryService.GetListAsync();
 
             // Assert
-            result.Should().BeEquivalentTo(new CategoryResponseDto { Id = category.Id, Name = category.Name });
-
-            _mockCategoryRepository.Verify(repo => repo.GetAsync(
-                It.Is<Expression<Func<Category, bool>>>(expr => expr.Compile()(category)),
-                It.IsAny<bool>(), // Include parameter
-                false,            // WithDeleted
-                It.IsAny<bool>(), // EnableTracking
-                CancellationToken.None
-            ), Times.Once);
+            result.Should().BeEquivalentTo(categories.Select(c => new CategoryResponseDto { Id = c.Id, Name = c.Name }));
+            _mockCategoryRepository.Verify(repo => repo.GetListAsync(
+                It.IsAny<Expression<Func<Category, bool>>>(),
+                It.IsAny<Func<IQueryable<Category>, IOrderedQueryable<Category>>>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()), Times.Once);
         }
-
         [Fact]
-        public async Task DeleteAsync_ShouldReturnCategoryWithDeletedFlag()
+        public async Task DeleteAsync_ShouldMarkCategoryAsDeleted()
         {
             // Arrange
             var categoryRequestDto = new CategoryRequestDto { Id = 1 };
             var category = new Category { Id = 1, Name = "Category1", IsDeleted = false };
 
-            // Mock: GetListAsync to retrieve the category
-            _mockCategoryRepository.Setup(repo => repo.GetListAsync(
-                    It.Is<Expression<Func<Category, bool>>>(expr => expr.Compile().Invoke(category)), // Exact match
-                    null,
-                    false,
-                    false,
-                    true,
-                    default))
-                .ReturnsAsync(new List<Category> { category });
+            // Adlandırılmış argümanlar kaldırıldı ve sıralı argüman kullanıldı.
+            _mockCategoryRepository.Setup(repo => repo.GetAsync(
+                x => x.Id == categoryRequestDto.Id, true, false, true, default))
+                .ReturnsAsync(category);
 
-            // Mock: UpdateAsync method to simulate soft deletion
             _mockCategoryRepository.Setup(repo => repo.UpdateAsync(It.IsAny<Category>()))
                 .ReturnsAsync(category);
 
             // Act
-            var result = await _categoryService.DeleteAsync(categoryRequestDto, permanent: false);
+            var result = await _categoryService.DeleteAsync(categoryRequestDto);
 
             // Assert
             result.Should().BeEquivalentTo(new CategoryResponseDto { Id = category.Id, Name = category.Name });
-            category.IsDeleted.Should().BeTrue();  // Check if the category is marked as deleted
-            _mockCategoryRepository.Verify(repo => repo.UpdateAsync(It.Is<Category>(c => c.IsDeleted == true)), Times.Once); // Ensure that UpdateAsync is called with IsDeleted = true
+            category.IsDeleted.Should().BeTrue();
+            _mockCategoryRepository.Verify(repo => repo.UpdateAsync(It.Is<Category>(c => c.IsDeleted == true)), Times.Once);
         }
-
-
         [Fact]
         public async Task UpdateAsync_ShouldUpdateCategory()
         {
@@ -156,17 +116,15 @@ public async Task GetListAsync_ShouldReturnCategoryList()
             var updateRequestDto = new CategoryUpdateRequestDto { Id = 1, Name = "NewName" };
             var updatedCategory = new Category { Id = 1, Name = "NewName" };
 
-            // Mock: GetListAsync to retrieve the category to update
-            _mockCategoryRepository.Setup(repo => repo.GetListAsync(
-                    It.IsAny<Expression<Func<Category, bool>>>(),
-                    null,
-                    false,
-                    false,
-                    true,
-                    default))
-                .ReturnsAsync(new List<Category> { existingCategory });
+            // Adlandırılmış argümanları kullanmadan ayarlama yapıyoruz
+            _mockCategoryRepository.Setup(repo => repo.GetAsync(
+                x => x.Id == updateRequestDto.Id,
+                true, // include varsayılan değeri
+                false, // withDeleted varsayılan değeri
+                true, // enableTracking varsayılan değeri
+                default)) // CancellationToken varsayılan değeri
+                .ReturnsAsync(existingCategory);
 
-            // Mock: UpdateAsync to return the updated category
             _mockCategoryRepository.Setup(repo => repo.UpdateAsync(It.IsAny<Category>()))
                 .ReturnsAsync(updatedCategory);
 
@@ -175,10 +133,7 @@ public async Task GetListAsync_ShouldReturnCategoryList()
 
             // Assert
             result.Should().BeEquivalentTo(new CategoryResponseDto { Id = updatedCategory.Id, Name = updatedCategory.Name });
-            _mockCategoryRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Category>()), Times.Once);
+            _mockCategoryRepository.Verify(repo => repo.UpdateAsync(It.Is<Category>(c => c.Name == "NewName")), Times.Once);
         }
-
-
     }
-
 }

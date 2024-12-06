@@ -76,16 +76,16 @@ namespace TechCareer.Service.Tests.UnitTests
                 Id = instructor.Id
             };
 
-            // GetAsync mock setup: Doğru predikatla eşleştiriyoruz
+            // GetAsync mock setup: Predicate'i doğru şekilde eşleştiriyoruz
             _mockInstructorRepository.Setup(service => service.GetAsync(
-                It.Is<Expression<Func<Instructor, bool>>>(predicate => predicate.Compile().Invoke(instructor)),
-                false,
-                false,
-                true,
-                default))
-            .ReturnsAsync(instructor);
+                It.Is<Expression<Func<Instructor, bool>>>(predicate => predicate.Compile().Invoke(instructor)), // Predicate'in doğru eşleştiğinden emin olun
+                false, // include parametresi
+                false, // withDeleted parametresi
+                true,  // enableTracking parametresi
+                default)) // cancellationToken
+            .ReturnsAsync(instructor); // Mocklanan instructor objesini döndürüyoruz
 
-            // UpdateAsync mock setup: IsDeleted flag'ını doğru şekilde güncelliyoruz
+            // UpdateAsync mock setup: IsDeleted flag'ını true yapıyoruz
             _mockInstructorRepository.Setup(service => service.UpdateAsync(It.Is<Instructor>(i => i.IsDeleted == true)))
                 .ReturnsAsync(new Instructor { Id = instructor.Id, IsDeleted = true });
 
@@ -93,9 +93,9 @@ namespace TechCareer.Service.Tests.UnitTests
             var result = await _instructorService.DeleteAsync(instructorRequestDto, permanent: false);
 
             // Assert
-            Assert.NotNull(result);
-            _mockInstructorRepository.Verify(service => service.UpdateAsync(It.Is<Instructor>(i => i.IsDeleted == true)), Times.Once);
-            _mockInstructorRepository.Verify(service => service.GetAsync(It.IsAny<Expression<Func<Instructor, bool>>>(), false, false, true, default), Times.Once);
+            Assert.NotNull(result);  // Result null olmamalı
+            _mockInstructorRepository.Verify(service => service.UpdateAsync(It.Is<Instructor>(i => i.IsDeleted == true)), Times.Once);  // UpdateAsync doğru çağrıldığından emin olun
+            _mockInstructorRepository.Verify(service => service.GetAsync(It.IsAny<Expression<Func<Instructor, bool>>>(), false, false, true, default), Times.Once);  // GetAsync doğru çağrıldığından emin olun
         }
 
         [Fact]
