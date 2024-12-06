@@ -10,18 +10,26 @@ using System.Collections.Generic;
 using FluentAssertions;
 using TechCareer.Models.Dtos.OperationClaim;
 using TechCareer.DataAccess.Repositories.Abstracts;
+using Core.CrossCuttingConcerns.Serilog;
 
 namespace TechCareer.Service.Tests.UnitTests
 {
     public class OperationClaimServiceTests
     {
         private readonly Mock<IOperationClaimRepository> _mockOperationClaimRepository;
+        private readonly Mock<LoggerServiceBase> _mockLogger; // LoggerServiceBase için Mock ekledim
         private readonly OperationClaimService _operationClaimService;
 
         public OperationClaimServiceTests()
         {
+            // IOperationClaimRepository mock'ı oluşturuyoruz
             _mockOperationClaimRepository = new Mock<IOperationClaimRepository>();
-            _operationClaimService = new OperationClaimService(_mockOperationClaimRepository.Object);
+
+            // LoggerServiceBase mock'ı oluşturuyoruz
+            _mockLogger = new Mock<LoggerServiceBase>();
+
+            // OperationClaimService'i doğru bağımlılıkla oluşturuyoruz
+            _operationClaimService = new OperationClaimService(_mockOperationClaimRepository.Object, _mockLogger.Object);
         }
 
         [Fact]
@@ -29,15 +37,27 @@ namespace TechCareer.Service.Tests.UnitTests
         {
             // Arrange
             var operationClaim = new OperationClaim { Id = 1, Name = "Admin" };
+
+            // Mock'ı ayarlıyoruz
             _mockOperationClaimRepository.Setup(repo => repo.AddAsync(It.IsAny<OperationClaim>()))
-                                         .ReturnsAsync(operationClaim);
+                                          .ReturnsAsync(operationClaim);
+
+            // Logger mock'ını ayarlıyoruz, log metodlarının hiçbiri çağrılmasın diye boş bir setup yapıyoruz
+            _mockLogger.Setup(logger => logger.Info(It.IsAny<string>()));
+            _mockLogger.Setup(logger => logger.Error(It.IsAny<string>()));
 
             // Act
             var result = await _operationClaimService.AddAsync(new OperationClaimAddRequestDto { Name = "Admin" });
 
             // Assert
             result.Should().BeEquivalentTo(new OperationClaimResponseDto { Id = 1, Name = "Admin" });
+
+            // Repository'nin doğru bir şekilde çağrıldığını kontrol ediyoruz
             _mockOperationClaimRepository.Verify(repo => repo.AddAsync(It.IsAny<OperationClaim>()), Times.Once);
+
+            // Logger'ın logları düzgün bir şekilde çağırıp çağırmadığını kontrol ediyoruz
+            _mockLogger.Verify(logger => logger.Info(It.IsAny<string>()), Times.Once);  // Info logu çağrılmış mı?
+            _mockLogger.Verify(logger => logger.Error(It.IsAny<string>()), Times.Never); // Error logu çağrılmamalı
         }
 
         [Fact]
